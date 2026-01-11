@@ -72,7 +72,9 @@
                     </button>
                 </div>
                 <hr />
-                <div #logger class="logger"></div>
+                <div class="logger">
+                    <p *ngFor="let log of eventLogs">{{ log }}</p>
+                </div>
             </div>
         </div>
     </div>

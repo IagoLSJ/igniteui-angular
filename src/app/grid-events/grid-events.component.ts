@@ -1,4 +1,5 @@
-import { Component, ViewChild, ElementRef, Renderer2 } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import {
     IgxGridComponent,
     ISortingExpression, IPinColumnEventArgs,
@@ -27,12 +28,11 @@ import { data } from '../shared/data';
     selector: 'app-grid-events',
     styleUrls: ['grid-events.component.scss'],
     templateUrl: 'grid-events.component.html',
-    imports: [IgxSwitchComponent, IgxInputGroupComponent, IgxInputDirective, IgxGridComponent, IgxGridToolbarComponent, IgxGridToolbarActionsComponent, IgxGridToolbarHidingComponent, IgxGridToolbarPinningComponent, IgxGridToolbarAdvancedFilteringComponent, IgxColumnComponent, IgxPaginatorComponent, IgxButtonDirective, IgxIconComponent]
+    imports: [CommonModule, IgxSwitchComponent, IgxInputGroupComponent, IgxInputDirective, IgxGridComponent, IgxGridToolbarComponent, IgxGridToolbarActionsComponent, IgxGridToolbarHidingComponent, IgxGridToolbarPinningComponent, IgxGridToolbarAdvancedFilteringComponent, IgxColumnComponent, IgxPaginatorComponent, IgxButtonDirective, IgxIconComponent]
 })
 export class GridEventsComponent {
 
     @ViewChild('grid1', { read: IgxGridComponent, static: true }) public grid: IgxGridComponent;
-    @ViewChild('logger') public logger: ElementRef;
 
     public $sorting = false;
     public $filtering = false;
@@ -43,8 +43,9 @@ export class GridEventsComponent {
     public $hiding = false;
     public $moving = false;
     public localData: any[];
+    public eventLogs: string[] = [];
 
-    constructor(private renderer: Renderer2) {
+    constructor() {
         this.localData = data;
     }
 
@@ -116,22 +117,14 @@ export class GridEventsComponent {
     }
 
     public clearLog() {
-        const  elements = this.logger.nativeElement.querySelectorAll('p');
-        for (const element of elements) {
-            this.renderer.removeChild(this.logger.nativeElement, element);
-          }
+        this.eventLogs = [];
     }
 
     private logAnEvent(msg: string, cancelled?: boolean) {
-        const createElem = this.renderer.createElement('p');
         if (cancelled) {
             msg = msg.concat(': cancelled ');
         }
-
-        const text = this.renderer.createText(msg);
-        this.renderer.appendChild(createElem, text);
-        const container = this.logger.nativeElement;
-        this.renderer.insertBefore(container, createElem, container.children[0]);
+        this.eventLogs.unshift(msg);
     }
 }
 
