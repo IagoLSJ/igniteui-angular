@@ -146,7 +146,8 @@ export class GridGroupBySampleComponent implements OnInit {
         }
     }
     public onRowSelection(event) {
-        this.grid1.rowSelection = event.newSelection.element.nativeElement.textContent.trim();
+        const index = event.newSelection.index;
+        this.grid1.rowSelection = this.selectionModes[index];
     }
     public getRowsList() {
         console.log(this.grid1.rowList);
