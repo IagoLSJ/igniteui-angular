@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, HostBinding, Input, OnDestroy, OnInit, Output, ViewChild, AfterContentInit, booleanAttribute, inject } from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostBinding, Input, OnDestroy, OnInit, Output, ViewChild, AfterContentInit, inject, OnChanges, SimpleChanges } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { IgxNavigationService, IToggleView } from 'igniteui-angular/core';
@@ -10,6 +10,7 @@ import { IgxFocusDirective } from 'igniteui-angular/directives';
 import { IgxFocusTrapDirective } from 'igniteui-angular/directives';
 import { CancelableEventArgs, IBaseEventArgs } from 'igniteui-angular/core';
 import { fadeIn, fadeOut } from 'igniteui-angular/animations';
+import { IgxDialogConfig } from './dialog.config';
 
 let DIALOG_ID = 0;
 /**
@@ -44,7 +45,7 @@ let DIALOG_ID = 0;
     templateUrl: 'dialog-content.component.html',
     imports: [IgxToggleDirective, IgxFocusTrapDirective, IgxFocusDirective, IgxButtonDirective, IgxRippleDirective]
 })
-export class IgxDialogComponent implements IToggleView, OnInit, OnDestroy, AfterContentInit {
+export class IgxDialogComponent implements IToggleView, OnInit, OnDestroy, AfterContentInit, OnChanges {
     private elementRef = inject(ElementRef);
     private navService = inject(IgxNavigationService, { optional: true });
 
@@ -56,190 +57,102 @@ export class IgxDialogComponent implements IToggleView, OnInit, OnDestroy, After
     @ViewChild(IgxToggleDirective, { static: true })
     public toggleRef: IgxToggleDirective;
 
-    /**
-     * Sets the value of the `id` attribute. If not provided it will be automatically generated.
-     * ```html
-     * <igx-dialog [id]="'igx-dialog-56'" #alert title="Notification"
-     *  leftButtonLabel="OK" (leftButtonSelect)="alert.close()">
-     * </igx-dialog>
-     * ```
-     */
+    @Input()
+    public config!: IgxDialogConfig;
+
+    private _defaultId: string | undefined;
+
+    private get defaultConfig(): IgxDialogConfig {
+        if (!this._defaultId) {
+            this._defaultId = `igx-dialog-${DIALOG_ID++}`;
+        }
+        return {
+            id: this._defaultId,
+            isModal: true,
+            closeOnEscape: true,
+            focusTrap: true,
+            title: '',
+            message: '',
+            leftButtonLabel: '',
+            leftButtonType: 'flat',
+            leftButtonRipple: '',
+            rightButtonLabel: '',
+            rightButtonType: 'flat',
+            rightButtonRipple: '',
+            closeOnOutsideSelect: false,
+            positionSettings: {
+                openAnimation: fadeIn,
+                closeAnimation: fadeOut
+            },
+            isOpen: false
+        };
+    }
+
+    private get cfg(): IgxDialogConfig {
+        return this.config || this.defaultConfig;
+    }
+
     @HostBinding('attr.id')
-    @Input()
-    public id = `igx-dialog-${DIALOG_ID++}`;
+    public get id() {
+        return this.cfg.id ?? this.defaultConfig.id!;
+    }
 
-    /**
-     * Controls whether the dialog should be shown as modal. Defaults to `true`
-     * ```html
-     * <igx-dialog [isModal]="false" ></igx-dialog>
-     * ```
-     */
-    @Input({ transform: booleanAttribute })
     public get isModal() {
-        return this._isModal;
+        return this.cfg.isModal ?? true;
     }
 
-    public set isModal(val: boolean) {
-        this._overlayDefaultSettings.modal = val;
-        this._isModal = val;
-    }
-
-    /**
-     * Controls whether the dialog should close when `Esc` key is pressed. Defaults to `true`
-     * ```html
-     * <igx-dialog [closeOnEscape]="false" ></igx-dialog>
-     * ```
-     */
-    @Input({ transform: booleanAttribute })
     public get closeOnEscape() {
-        return this._closeOnEscape;
+        return this.cfg.closeOnEscape ?? true;
     }
 
-    public set closeOnEscape(val: boolean) {
-        this._overlayDefaultSettings.closeOnEscape = val;
-        this._closeOnEscape = val;
+    public get focusTrap() {
+        return this.cfg.focusTrap ?? true;
     }
 
-    /**
-     * Set whether the Tab key focus is trapped within the dialog when opened.
-     * Defaults to `true`.
-     * ```html
-     * <igx-dialog focusTrap="false""></igx-dialog>
-     * ```
-     */
-    @Input({ transform: booleanAttribute })
-    public focusTrap = true;
+    public get title() {
+        return this.cfg.title ?? '';
+    }
 
-    /**
-     * Sets the title of the dialog.
-     * ```html
-     * <igx-dialog title="Notification" #alert leftButtonLabel="OK" (leftButtonSelect)="alert.close()"></igx-dialog>
-     * ```
-     */
-    @Input()
-    public title = '';
+    public get message() {
+        return this.cfg.message ?? '';
+    }
 
-    /**
-     *  Sets the message text of the dialog.
-     * ```html
-     * <igx-dialog message="Your email was sent!" #alert leftButtonLabel="OK" (leftButtonSelect)="alert.close()"></igx-dialog>
-     * ```
-     */
-    @Input()
-    public message = '';
+    public get leftButtonLabel() {
+        return this.cfg.leftButtonLabel ?? '';
+    }
 
-    /**
-     * Sets the `label` of the left button of the dialog.
-     * ```html
-     * <igx-dialog leftButtonLabel="OKAY" #alert title="Notification"  (leftButtonSelect)="alert.close()"></igx-dialog>
-     * ```
-     */
-    @Input()
-    public leftButtonLabel = '';
+    public get leftButtonType() {
+        return this.cfg.leftButtonType ?? 'flat';
+    }
 
-    /**
-     * Sets the left button `type`. The types are `flat`, `contained` and `fab`.
-     * The `flat` type button is a rectangle and doesn't have a shadow. <br>
-     * The `contained` type button is also a rectangle but has a shadow. <br>
-     * The `fab` type button is a circle with a shadow. <br>
-     * The default value is `flat`.
-     * ```html
-     * <igx-dialog leftButtonType="contained" leftButtonLabel="OKAY" #alert (leftButtonSelect)="alert.close()"></igx-dialog>
-     * ```
-     */
-    @Input()
-    public leftButtonType: IgxButtonType = 'flat';
+    public get leftButtonRipple() {
+        return this.cfg.leftButtonRipple ?? '';
+    }
 
-    /**
-     * Sets the left button `ripple`. The `ripple` animates a click/tap to a component as a series of fading waves.
-     * The property accepts all valid CSS color property values.
-     * ```html
-     * <igx-dialog leftButtonRipple="green" leftButtonLabel="OKAY" #alert (leftButtonSelect)="alert.close()"></igx-dialog>
-     * ```
-     */
-    @Input()
-    public leftButtonRipple = '';
+    public get rightButtonLabel() {
+        return this.cfg.rightButtonLabel ?? '';
+    }
 
-    /**
-     * Sets the `label` of the right button of the dialog.
-     * ```html
-     * <igx-dialog rightButtonLabel="OKAY" #alert title="Notification"  (leftButtonSelect)="alert.close()"></igx-dialog>
-     * ```
-     */
-    @Input()
-    public rightButtonLabel = '';
+    public get rightButtonType() {
+        return this.cfg.rightButtonType ?? 'flat';
+    }
 
-    /**
-     * Sets the right button `type`. The types are `flat`, `contained` and `fab`.
-     * The `flat` type button is a rectangle and doesn't have a shadow. <br>
-     * The `contained` type button is also a rectangle but has a shadow. <br>
-     * The `fab` type button is a circle with a shadow. <br>
-     * The default value is `flat`.
-     * ```html
-     * <igx-dialog rightButtonType="fab" rightButtonLabel="OKAY" #alert (leftButtonSelect)="alert.close()"></igx-dialog>
-     * ```
-     */
-    @Input()
-    public rightButtonType: IgxButtonType = 'flat';
+    public get rightButtonRipple() {
+        return this.cfg.rightButtonRipple ?? '';
+    }
 
-    /**
-     * Sets the right button `ripple`.
-     * ```html
-     * <igx-dialog rightButtonRipple="green" rightButtonLabel="OKAY" #alert (leftButtonSelect)="alert.close()"></igx-dialog>
-     * ```
-     */
-    @Input()
-    public rightButtonRipple = '';
-
-    /**
-     * Gets/Sets whether the dialog should close on click outside the component. By default it's false.
-     * ```html
-     * <igx-dialog closeOnOutsideSelect="true" leftButtonLabel="Cancel" (leftButtonSelect)="dialog.close()"
-     * rightButtonLabel="OK" rightButtonRipple="#4CAF50" (rightButtonSelect)="onDialogOKSelected($event)">
-     * </igx-dialog>
-     * ```
-     */
-    @Input({ transform: booleanAttribute })
     public get closeOnOutsideSelect() {
-        return this._closeOnOutsideSelect;
+        return this.cfg.closeOnOutsideSelect ?? false;
     }
 
-    public set closeOnOutsideSelect(val: boolean) {
-        this._overlayDefaultSettings.closeOnOutsideClick = val;
-        this._closeOnOutsideSelect = val;
-    }
-
-    /**
-     * Get the position and animation settings used by the dialog.
-     * ```typescript
-     * @ViewChild('alert', { static: true }) public alert: IgxDialogComponent;
-     * let currentPosition: PositionSettings = this.alert.positionSettings
-     * ```
-     */
-    @Input()
     public get positionSettings(): PositionSettings {
-        return this._positionSettings;
+        return this.cfg.positionSettings ?? this._positionSettings;
     }
 
-    /**
-     * Set the position and animation settings used by the dialog.
-     * ```typescript
-     * import { slideInLeft, slideOutRight } from 'igniteui-angular';
-     * ...
-     * @ViewChild('alert', { static: true }) public alert: IgxDialogComponent;
-     *  public newPositionSettings: PositionSettings = {
-     *      openAnimation: useAnimation(slideInTop, { params: { duration: '2000ms' } }),
-     *      closeAnimation: useAnimation(slideOutBottom, { params: { duration: '2000ms'} }),
-     *      horizontalDirection: HorizontalAlignment.Left,
-     *      verticalDirection: VerticalAlignment.Middle,
-     *      horizontalStartPoint: HorizontalAlignment.Left,
-     *      verticalStartPoint: VerticalAlignment.Middle,
-     *      minSize: { height: 100, width: 100 }
-     *  };
-     * this.alert.positionSettings = this.newPositionSettings;
-     * ```
-     */
     public set positionSettings(settings: PositionSettings) {
+        if (this.config) {
+            this.config.positionSettings = settings;
+        }
         this._positionSettings = settings;
         this._overlayDefaultSettings.positionStrategy = new GlobalPositionStrategy(this._positionSettings);
     }
@@ -340,30 +253,13 @@ export class IgxDialogComponent implements IToggleView, OnInit, OnDestroy, After
         return this.isOpen ? 'open' : 'close';
     }
 
-    /**
-     * State of the dialog.
-     *
-     * ```typescript
-     * // get
-     * let dialogIsOpen = this.dialog.isOpen;
-     * ```
-     *
-     * ```html
-     * <!--set-->
-     * <igx-dialog [isOpen]='false'></igx-dialog>
-     * ```
-     *
-     * Two-way data binding.
-     * ```html
-     * <!--set-->
-     * <igx-dialog [(isOpen)]='model.isOpen'></igx-dialog>
-     * ```
-     */
-    @Input({ transform: booleanAttribute })
     public get isOpen() {
         return this.toggleRef ? !this.toggleRef.collapsed : false;
     }
     public set isOpen(value: boolean) {
+        if (this.config) {
+            this.config.isOpen = value;
+        }
         if (value !== this.isOpen) {
             this.isOpenChange.emit(value);
             if (value) {
@@ -381,17 +277,6 @@ export class IgxDialogComponent implements IToggleView, OnInit, OnDestroy, After
         return this.toggleRef.collapsed;
     }
 
-    /**
-     * Returns the value of the role of the dialog. The valid values are `dialog`, `alertdialog`, `alert`.
-     * ```typescript
-     * @ViewChild("MyDialog")
-     * public dialog: IgxDialogComponent;
-     * ngAfterViewInit() {
-     *     let dialogRole = this.dialog.role;
-     * }
-     *  ```
-     */
-    @Input()
     public get role() {
         if (this.leftButtonLabel !== '' && this.rightButtonLabel !== '') {
             return 'dialog';
@@ -405,17 +290,6 @@ export class IgxDialogComponent implements IToggleView, OnInit, OnDestroy, After
         }
     }
 
-    /**
-     * Returns the value of the title id.
-     * ```typescript
-     *  @ViewChild("MyDialog")
-     * public dialog: IgxDialogComponent;
-     * ngAfterViewInit() {
-     *     let dialogTitle = this.dialog.titleId;
-     * }
-     * ```
-     */
-    @Input()
     public get titleId() {
         return this._titleId;
     }
@@ -428,19 +302,31 @@ export class IgxDialogComponent implements IToggleView, OnInit, OnDestroy, After
     };
 
     private _overlayDefaultSettings: OverlaySettings;
-    private _closeOnOutsideSelect = false;
-    private _closeOnEscape = true;
-    private _isModal = true;
     private _titleId: string;
 
     constructor() {
         this._titleId = IgxDialogComponent.NEXT_ID++ + '_title';
+        this.updateOverlaySettings();
+    }
 
+    public ngOnChanges(changes: SimpleChanges) {
+        if (changes['config'] && this.config) {
+            if (this.config.positionSettings) {
+                this._positionSettings = this.config.positionSettings;
+            }
+            this.updateOverlaySettings();
+            if (this.config.isOpen !== undefined && this.config.isOpen !== this.isOpen) {
+                this.isOpen = this.config.isOpen;
+            }
+        }
+    }
+
+    private updateOverlaySettings() {
         this._overlayDefaultSettings = {
             positionStrategy: new GlobalPositionStrategy(this._positionSettings),
             scrollStrategy: new NoOpScrollStrategy(),
             modal: this.isModal,
-            closeOnEscape: this._closeOnEscape,
+            closeOnEscape: this.closeOnEscape,
             closeOnOutsideClick: this.closeOnOutsideSelect
         };
     }
