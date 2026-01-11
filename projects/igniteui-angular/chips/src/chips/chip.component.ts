@@ -11,7 +11,6 @@ import {
     Renderer2,
     TemplateRef,
     OnDestroy,
-    booleanAttribute,
     OnInit,
     inject,
     DOCUMENT
@@ -23,6 +22,7 @@ import { Subject } from 'rxjs';
 import { IgxIconComponent } from 'igniteui-angular/icon';
 import { NgClass, NgTemplateOutlet } from '@angular/common';
 import { getCurrentResourceStrings } from 'igniteui-angular/core';
+import { IgxChipConfig } from './chip.config';
 
 export const IgxChipTypeVariant = {
     PRIMARY: 'primary',
@@ -92,32 +92,36 @@ export class IgxChipComponent implements OnInit, OnDestroy {
     private renderer = inject(Renderer2);
     public document = inject(DOCUMENT);
 
+    @Input()
+    public config!: IgxChipConfig;
 
-    /**
-     * Sets/gets the variant of the chip.
-     *
-     * @remarks
-     * Allowed values are `primary`, `info`, `success`, `warning`, `danger`.
-     * Providing no/nullish value leaves the chip in its default state.
-     *
-     * @example
-     * ```html
-     * <igx-chip variant="success"></igx-chip>
-     * ```
-     */
-    @Input()
-    public variant?: IgxChipTypeVariant | null;
-    /**
-     * Sets the value of `id` attribute. If not provided it will be automatically generated.
-     *
-     * @example
-     * ```html
-     * <igx-chip [id]="'igx-chip-1'"></igx-chip>
-     * ```
-     */
+    private _defaultId: string | undefined;
+
+    private get defaultConfig(): IgxChipConfig {
+        if (!this._defaultId) {
+            this._defaultId = `igx-chip-${CHIP_ID++}`;
+        }
+        return {
+            id: this._defaultId,
+            tabIndex: null,
+            draggable: false,
+            animateOnRelease: true,
+            hideBaseOnDrag: true,
+            removable: false,
+            selectable: false,
+            class: '',
+            disabled: false,
+            selected: false
+        };
+    }
+
+    private get cfg(): IgxChipConfig {
+        return this.config || this.defaultConfig;
+    }
     @HostBinding('attr.id')
-    @Input()
-    public id = `igx-chip-${CHIP_ID++}`;
+    public get id() {
+        return this.cfg.id ?? this.defaultConfig.id!;
+    }
 
     /**
      * Returns the `role` attribute of the chip.
@@ -130,159 +134,64 @@ export class IgxChipComponent implements OnInit, OnDestroy {
     @HostBinding('attr.role')
     public role = 'option';
 
-    /**
-     * Sets the value of `tabindex` attribute. If not provided it will use the element's tabindex if set.
-     *
-     * @example
-     * ```html
-     * <igx-chip [id]="'igx-chip-1'" [tabIndex]="1"></igx-chip>
-     * ```
-     */
     @HostBinding('attr.tabIndex')
-    @Input()
-    public set tabIndex(value: number) {
-        this._tabIndex = value;
-    }
-
     public get tabIndex() {
-        if (this._tabIndex !== null) {
+        const configTabIndex = this.cfg.tabIndex;
+        if (configTabIndex !== null && configTabIndex !== undefined) {
+            this._tabIndex = configTabIndex;
+        }
+        if (this._tabIndex !== null && this._tabIndex !== undefined) {
             return this._tabIndex;
         }
         return !this.disabled ? 0 : null;
     }
 
-    /**
-     * Stores data related to the chip.
-     *
-     * @example
-     * ```html
-     * <igx-chip [data]="{ value: 'Country' }"></igx-chip>
-     * ```
-     */
-    @Input()
-    public data: any;
+    public get data() {
+        return this.cfg.data;
+    }
 
-    /**
-     * Defines if the `IgxChipComponent` can be dragged in order to change it's position.
-     * By default it is set to false.
-     *
-     * @example
-     * ```html
-     * <igx-chip [id]="'igx-chip-1'" [draggable]="true"></igx-chip>
-     * ```
-     */
-    @Input({ transform: booleanAttribute })
-    public draggable = false;
+    public get draggable() {
+        return this.cfg.draggable ?? false;
+    }
 
-    /**
-     * Enables/disables the draggable element animation when the element is released.
-     * By default it's set to true.
-     *
-     * @example
-     * ```html
-     * <igx-chip [id]="'igx-chip-1'" [draggable]="true" [animateOnRelease]="false"></igx-chip>
-     * ```
-     */
-    @Input({ transform: booleanAttribute })
-    public animateOnRelease = true;
+    public get animateOnRelease() {
+        return this.cfg.animateOnRelease ?? true;
+    }
 
-    /**
-     * Enables/disables the hiding of the base element that has been dragged.
-     * By default it's set to true.
-     *
-     * @example
-     * ```html
-     * <igx-chip [id]="'igx-chip-1'" [draggable]="true" [hideBaseOnDrag]="false"></igx-chip>
-     * ```
-     */
-    @Input({ transform: booleanAttribute })
-    public hideBaseOnDrag = true;
+    public get hideBaseOnDrag() {
+        return this.cfg.hideBaseOnDrag ?? true;
+    }
 
-    /**
-     * Defines if the `IgxChipComponent` should render remove button and throw remove events.
-     * By default it is set to false.
-     *
-     * @example
-     * ```html
-     * <igx-chip [id]="'igx-chip-1'" [draggable]="true" [removable]="true"></igx-chip>
-     * ```
-     */
-    @Input({ transform: booleanAttribute })
-    public removable = false;
+    public get removable() {
+        return this.cfg.removable ?? false;
+    }
 
-    /**
-     * Overrides the default icon that the chip applies to the remove button.
-     *
-     * @example
-     * ```html
-     * <igx-chip [id]="chip.id" [removable]="true" [removeIcon]="iconTemplate"></igx-chip>
-     * <ng-template #iconTemplate><igx-icon>delete</igx-icon></ng-template>
-     * ```
-     */
-    @Input()
-    public removeIcon: TemplateRef<any>;
+    public get removeIcon() {
+        return this.cfg.removeIcon;
+    }
 
-    /**
-     * Defines if the `IgxChipComponent` can be selected on click or through navigation,
-     * By default it is set to false.
-     *
-     * @example
-     * ```html
-     * <igx-chip [id]="chip.id" [draggable]="true" [removable]="true" [selectable]="true"></igx-chip>
-     * ```
-     */
-    @Input({ transform: booleanAttribute })
-    public selectable = false;
+    public get selectable() {
+        return this.cfg.selectable ?? false;
+    }
 
-    /**
-     * Overrides the default icon that the chip applies when it is selected.
-     *
-     * @example
-     * ```html
-     * <igx-chip [id]="chip.id" [selectable]="true" [selectIcon]="iconTemplate"></igx-chip>
-     * <ng-template #iconTemplate><igx-icon>done_outline</igx-icon></ng-template>
-     * ```
-     */
-    @Input()
-    public selectIcon: TemplateRef<any>;
+    public get selectIcon() {
+        return this.cfg.selectIcon;
+    }
 
-    /**
-     * @hidden
-     * @internal
-     */
-    @Input()
-    public class = '';
+    public get class() {
+        return this.cfg.class ?? '';
+    }
 
-    /**
-     * Disables the `IgxChipComponent`. When disabled it restricts user interactions
-     * like focusing on click or tab, selection on click or Space, dragging.
-     * By default it is set to false.
-     *
-     * @example
-     * ```html
-     * <igx-chip [id]="chip.id" [disabled]="true"></igx-chip>
-     * ```
-     */
     @HostBinding('class.igx-chip--disabled')
-    @Input({ transform: booleanAttribute })
-    public disabled = false;
+    public get disabled() {
+        return this.cfg.disabled ?? false;
+    }
 
-    /**
-     * Sets the `IgxChipComponent` selected state.
-     *
-     * @example
-     * ```html
-     * <igx-chip #myChip [id]="'igx-chip-1'" [selectable]="true" [selected]="true">
-     * ```
-     *
-     * Two-way data binding:
-     * ```html
-     * <igx-chip #myChip [id]="'igx-chip-1'" [selectable]="true" [(selected)]="model.isSelected">
-     * ```
-     */
     @HostBinding('attr.aria-selected')
-    @Input({ transform: booleanAttribute })
     public set selected(newValue: boolean) {
+        if (this.config) {
+            this.config.selected = newValue;
+        }
         this.changeSelection(newValue);
     }
 
@@ -309,18 +218,13 @@ export class IgxChipComponent implements OnInit, OnDestroy {
     @Output()
     public selectedChange = new EventEmitter<boolean>();
 
-    /**
-     * Sets the `IgxChipComponent` background color.
-     * The `color` property supports string, rgb, hex.
-     *
-     * @example
-     * ```html
-     * <igx-chip #myChip [id]="'igx-chip-1'" [color]="'#ff0000'"></igx-chip>
-     * ```
-     */
-    @Input()
-    public set color(newColor) {
-        this.chipArea.nativeElement.style.backgroundColor = newColor;
+    public set color(newColor: string) {
+        if (this.config) {
+            this.config.color = newColor;
+        }
+        if (this.chipArea?.nativeElement) {
+            this.chipArea.nativeElement.style.backgroundColor = newColor;
+        }
     }
 
     /**
@@ -339,12 +243,10 @@ export class IgxChipComponent implements OnInit, OnDestroy {
         return this.chipArea.nativeElement.style.backgroundColor;
     }
 
-    /**
-     * An accessor that sets the resource strings.
-     * By default it uses EN resources.
-     */
-    @Input()
     public set resourceStrings(value: IChipResourceStrings) {
+        if (this.config) {
+            this.config.resourceStrings = value;
+        }
         this._resourceStrings = Object.assign({}, this._resourceStrings, value);
     }
 
@@ -495,6 +397,10 @@ export class IgxChipComponent implements OnInit, OnDestroy {
     @HostBinding('class.igx-chip')
     protected defaultClass = 'igx-chip';
 
+    public get variant(): IgxChipTypeVariant | null | undefined {
+        return this.cfg.variant as IgxChipTypeVariant | null | undefined;
+    }
+
     @HostBinding('class.igx-chip--primary')
     protected get isPrimary() {
         return this.variant === IgxChipTypeVariant.PRIMARY;
@@ -603,7 +509,7 @@ export class IgxChipComponent implements OnInit, OnDestroy {
     protected get chipSize(): ɵSize {
         return this.computedStyles?.getPropertyValue('--ig-size') || ɵSize.Medium;
     }
-    protected _tabIndex = null;
+    protected _tabIndex: number | null = null;
     protected _selected = false;
     protected _selectedItemClass = 'igx-chip__item--selected';
     protected _movedWhileRemoving = false;
@@ -909,7 +815,16 @@ export class IgxChipComponent implements OnInit, OnDestroy {
     }
 
     public ngOnInit(): void {
+        if (!this.config) {
+            this.config = this.defaultConfig;
+        }
         this.computedStyles = this.document.defaultView.getComputedStyle(this.nativeElement);
+        if (this.config.selected !== undefined && this.config.selected !== this._selected) {
+            this.changeSelection(this.config.selected);
+        }
+        if (this.config.color && this.chipArea?.nativeElement) {
+            this.chipArea.nativeElement.style.backgroundColor = this.config.color;
+        }
     }
 
     public ngOnDestroy(): void {

@@ -3,6 +3,7 @@ import { IgxChipComponent } from './chip.component';
 import { IgxChipsAreaComponent } from './chips-area.component';
 
 export * from './chip.component';
+export * from './chip.config';
 export * from './chips-area.component';
 
 /* NOTE: Chips directives collection for ease-of-use import in standalone components scenario */
