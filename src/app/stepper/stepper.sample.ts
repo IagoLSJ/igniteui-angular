@@ -3,11 +3,9 @@ import {
     CUSTOM_ELEMENTS_SCHEMA,
     DestroyRef,
     Directive,
-    ElementRef,
     HostBinding,
     inject,
-    OnInit,
-    ViewChild
+    OnInit
 } from '@angular/core';
 import {
     FormsModule,
@@ -49,6 +47,8 @@ import {
 } from '../properties-panel/property-change.service';
 import { NgTemplateOutlet } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { StepperCoordinatorService } from './stepper-coordinator.service';
+import { IgcStepperCoordinatorDirective } from './stepper-coordinator.directive';
 
 defineComponents(IgcStepperComponent, IgcButtonComponent, IgcInputComponent);
 
@@ -79,6 +79,14 @@ icons.forEach((icon) => {
     registerIconFromText(icon.name, icon.url);
 });
 
+interface IgcStepperWebComponent {
+    active: number;
+    steps: Array<{ header?: HTMLElement }>;
+    navigateTo(index: number): void;
+    next(): void;
+    prev(): void;
+}
+
 /** https://github.com/angular/angular/issues/51239 */
 // This is a fix for value synchronisation otherwise only the state is in sync
 // note: Don't remove the FormControlSyncDirective from the component imports
@@ -104,6 +112,7 @@ export class FormControlSyncDirective implements OnInit {
     templateUrl: 'stepper.sample.html',
     styleUrls: ['stepper.sample.scss'],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    providers: [StepperCoordinatorService],
     imports: [
         IgxButtonDirective,
         FormControlSyncDirective,
@@ -119,15 +128,11 @@ export class FormControlSyncDirective implements OnInit {
         IgxSelectItemComponent,
         IgxSuffixDirective,
         NgTemplateOutlet,
-        IGX_STEPPER_DIRECTIVES
+        IGX_STEPPER_DIRECTIVES,
+        IgcStepperCoordinatorDirective
     ]
 })
 export class IgxStepperSampleComponent {
-    @ViewChild('stepper',{ static: true, read: IgxStepperComponent })
-    public angularStepper!: IgxStepperComponent;
-
-    @ViewChild('stepper2', { static: true })
-    public webComponentStepper!: ElementRef;
 
     @HostBinding('class.vertical-stepper')
     public get isVertical() {
@@ -208,13 +213,20 @@ export class IgxStepperSampleComponent {
 
     private fb = inject(UntypedFormBuilder);
     private pcs = inject(PropertyChangeService);
+    private destroyRef = inject(DestroyRef);
+    public coordinator = inject(StepperCoordinatorService);
 
-    constructor(private destroyRef: DestroyRef) {
+    public angularStepperActiveIndex = 0;
+    public webComponentStepperActiveIndex = 0;
+    public isLinear = true;
+
+    constructor() {
         this.pcs.setPanelConfig(this.panelConfig);
 
         const propertyChange = this.pcs.propertyChanges.subscribe(
             (properties) => {
                 this.properties = properties;
+                this.isLinear = typeof properties.linear === 'boolean' ? properties.linear : this.isLinear;
             }
         );
 
@@ -224,8 +236,10 @@ export class IgxStepperSampleComponent {
     // Reactive forms initialization
     public shoppingCard = this.fb.group({
         firstName: ['', Validators.required],
-        lastName: ['', Validators.required],
+        lastName: ['', Validators.required]
     });
+
+
 
     public deliveryAddress = this.fb.group({
         address: ['', Validators.required],
@@ -280,78 +294,31 @@ export class IgxStepperSampleComponent {
             : IgxStepperOrientation.Vertical;
     }
 
-    // Handle changes from Angular Stepper
-    // TODO SEE WHY WEB C ANIMATION IS TRIGGERED AFTER THE ANGULAR
     public onAngularStepperChange(event: IStepChangedEventArgs): void {
         if (this.isSyncing) return;
 
-        const wcStepper = this.webComponentStepper.nativeElement as any;
-
-        // Ensure steps array is initialized
-        if (!wcStepper.steps || wcStepper.steps.length === 0) {
-            console.warn('Web Component steps are not initialized.');
-            this.isSyncing = false;
-            return;
-        }
-
-        const currentIndex = wcStepper.active; // Current active step in Web Component
-        const targetIndex = event.index; // Target step from Angular Stepper
-
-        if (currentIndex === targetIndex) {
-            console.log('Angular and Web Component steppers are already synchronized.');
-            return;
-        }
-
-        this.isSyncing = true;
-
-        const targetStep = wcStepper.steps[targetIndex];
-
-        // Simulate a user click to trigger the Web Component animation
-        if (targetStep?.header) {
-            targetStep.header.click();
-        } else {
-            console.warn(`Invalid step index in Web Component: ${targetIndex}`);
-        }
-
-        this.isSyncing = false;
+        this.angularStepperActiveIndex = event.index;
     }
 
-    // Handle changes from Web Component Stepper
     public onWcStepperChange(
         event: CustomEvent<IgcActiveStepChangingEventArgs>
     ): void {
         if (this.isSyncing) return;
 
-        const targetIndex = event.detail.newIndex; // IgcActiveStepChangingArgs has `newIndex` property
+        const targetIndex = event.detail.newIndex;
 
-        if (
-            targetIndex == null ||
-            targetIndex < 0 ||
-            targetIndex >= this.angularStepper.steps.length
-        ) {
-            console.warn(
-                `Invalid step index in Angular Stepper: ${targetIndex}`
-            );
+        if (targetIndex == null || targetIndex < 0) {
             return;
         }
 
-        this.isSyncing = true;
-
-        if (this.angularStepper.steps[targetIndex]?.active !== true) {
-            this.angularStepper.navigateTo(targetIndex);
-        }
-
-        this.isSyncing = false;
+        this.webComponentStepperActiveIndex = targetIndex;
     }
 
     public steppersPrev(): void {
-        this.angularStepper.prev();
-        this.webComponentStepper.nativeElement.prev();
+        this.coordinator.requestPrev();
     }
 
     public steppersNext(): void {
-        // Navigate Angular Stepper
-        this.angularStepper.next();
-        this.webComponentStepper.nativeElement.next();
+        this.coordinator.requestNext();
     }
 }

@@ -10,7 +10,7 @@
             <input igxInput formControlName="lastName" id="lastName" name="lastName" type="text" required />
         </igx-input-group>
         <div class="nav-buttons">
-            <button igxButton="outlined" (click)="stepper.next(); stepper2.next()" [disabled]="!shoppingCard.valid && properties.linear">NEXT</button>
+            <button igxButton="outlined" (click)="steppersNext()" [disabled]="!shoppingCard.valid && properties.linear">NEXT</button>
         </div>
     </form>
 </ng-template>
@@ -22,8 +22,8 @@
             <input igxInput formControlName="address" id="address" name="address" type="text" required />
         </igx-input-group>
         <div class="nav-buttons">
-            <button igxButton="outlined" (click)="stepper.prev(); stepper2.prev()">PREV</button>
-            <button igxButton="outlined" (click)="stepper.next(); stepper2.next()" [disabled]="!deliveryAddress.valid && stepper.linear">NEXT</button>
+            <button igxButton="outlined" (click)="steppersPrev()">PREV</button>
+            <button igxButton="outlined" (click)="steppersNext()" [disabled]="!deliveryAddress.valid && isLinear">NEXT</button>
         </div>
     </form>
 </ng-template>
@@ -40,7 +40,7 @@
         </igx-input-group>
         <div class="nav-buttons">
             <button igxButton="outlined" (click)="steppersPrev()">PREV</button>
-            <button igxButton="outlined" (click)="steppersNext()" [disabled]="!userDetails.valid && stepper.linear">NEXT</button>
+            <button igxButton="outlined" (click)="steppersNext()" [disabled]="!userDetails.valid && isLinear">NEXT</button>
         </div>
     </form>
 </ng-template>
@@ -55,7 +55,7 @@
 
         <div class="nav-buttons">
             <button igxButton="outlined" (click)="steppersPrev()">PREV</button>
-            <button igxButton="outlined" (click)="steppersNext()" [disabled]="!paymentMethod.valid && stepper.linear">NEXT</button>
+            <button igxButton="outlined" (click)="steppersNext()" [disabled]="!paymentMethod.valid && isLinear">NEXT</button>
         </div>
     </form>
 </ng-template>
@@ -68,8 +68,8 @@
         </igx-input-group>
 
         <div class="nav-buttons">
-            <button igxButton="outlined" (click)="steppersPrev(); stepper2.prev()">PREV</button>
-            <button igxButton="outlined" (click)="steppersNext(); stepper2.next()">NEXT</button>
+            <button igxButton="outlined" (click)="steppersPrev()">PREV</button>
+            <button igxButton="outlined" (click)="steppersNext()">NEXT</button>
         </div>
     </form>
 </ng-template>
@@ -83,7 +83,7 @@
         </igx-input-group>
 
         <div class="nav-buttons">
-            <button igxButton="outlined" (click)="stepper.prev(); stepper2.prev()">PREV</button>
+            <button igxButton="outlined" (click)="steppersPrev()">PREV</button>
             <button igxButton="outlined" [disabled]="!finish.valid">Submit</button>
         </div>
     </form>
@@ -91,7 +91,7 @@
 
 <div class="sample-stepper-wrapper showcase--angular">
     <strong>Angular Stepper</strong>
-    <igx-stepper #stepper
+    <igx-stepper
          [titlePosition]="titlePosition"
          [orientation]="orientation"
          [linear]="properties.linear"
@@ -119,7 +119,7 @@
             <span igxStepSubtitle>{{!shoppingCard.valid ? '(Required)' : 'completed'}}</span>
 
             <div igxStepContent>
-                <ng-container *ngTemplateOutlet="shoppingCardForm; context: { $implicit: stepper }"></ng-container>
+                <ng-container *ngTemplateOutlet="shoppingCardForm"></ng-container>
             </div>
         </igx-step>
 
@@ -198,7 +198,7 @@
 <div class="sample-stepper-wrapper showcase--web-components">
     <strong>WC Stepper</strong>
     <igc-stepper
-            #stepper2
+        stepperCoordinator
         [orientation]="orientation"
         [stepType]="stepType"
         [contentTop]="properties.contentTop"
