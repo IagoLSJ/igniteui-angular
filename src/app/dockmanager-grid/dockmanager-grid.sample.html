@@ -9,7 +9,7 @@
         </div>
         <div class="actionItem">
             <!-- Change volume -->
-            <igx-select [(ngModel)]="dataVolume" (ngModelChange)="paramsChanged()" [overlaySettings]="customOverlaySettings">
+            <igx-select #dataVolumeSelect [(ngModel)]="dataVolume" (ngModelChange)="paramsChanged()" [overlaySettings]="customOverlaySettings">
                 <label igxLabel>Change data volume</label>
                 <igx-prefix>
                     <igx-icon>view_list</igx-icon>
@@ -23,7 +23,7 @@
         </div>
         <div class="actionItem">
             <!-- Change frequency -->
-            <igx-select [(ngModel)]="frequency" (ngModelChange)="paramsChanged()" [overlaySettings]="freqOverlaySettings" #freq>
+            <igx-select #freqSelect [(ngModel)]="frequency" (ngModelChange)="paramsChanged()" [overlaySettings]="freqOverlaySettings">
                 <label igxLabel>Change update frequency</label>
                 <igx-prefix>
                     <igx-icon>cell_wifi</igx-icon>

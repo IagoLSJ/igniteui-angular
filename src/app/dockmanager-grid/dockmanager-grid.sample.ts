@@ -1,5 +1,5 @@
-import { AfterViewInit, CUSTOM_ELEMENTS_SCHEMA, ChangeDetectorRef, Component, DoCheck, ElementRef, EventEmitter, HostBinding, Input, OnDestroy, OnInit, Output, Renderer2, TemplateRef, ViewChild, ViewContainerRef, ViewEncapsulation } from '@angular/core';
-import { AbsoluteScrollStrategy, ConnectedPositioningStrategy, DefaultSortingStrategy, GridColumnDataType, IGX_BUTTON_GROUP_DIRECTIVES, IGX_GRID_DIRECTIVES, IgxColumnComponent, IgxGridComponent, IgxIconModule, IgxOverlayOutletDirective, IgxSelectComponent, IgxSelectModule, IgxSwitchModule, OverlaySettings, SortingDirection } from 'igniteui-angular';
+import { AfterViewInit, CUSTOM_ELEMENTS_SCHEMA, ChangeDetectorRef, Component, ElementRef, EventEmitter, HostBinding, Input, OnDestroy, OnInit, Output, TemplateRef, ViewChild, ViewContainerRef, ViewEncapsulation } from '@angular/core';
+import { AbsoluteScrollStrategy, ConnectedPositioningStrategy, DefaultSortingStrategy, GridColumnDataType, IGX_BUTTON_GROUP_DIRECTIVES, IGX_GRID_DIRECTIVES, IgxColumnComponent, IgxGridComponent, IgxIconModule, IgxOverlayOutletDirective, IgxSelectModule, IgxSwitchModule, OverlaySettings, SortingDirection } from 'igniteui-angular';
 import { IgcDockManagerLayout, IgcDockManagerPaneType, IgcSplitPane, IgcSplitPaneOrientation } from 'igniteui-dockmanager';
 import { defineCustomElements } from 'igniteui-dockmanager/loader';
 import { Subject } from 'rxjs';
@@ -60,15 +60,37 @@ export class DockSlotComponent implements AfterViewInit, OnDestroy {
     ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
-export class GridDockManagerSampleComponent implements OnInit, OnDestroy, AfterViewInit, DoCheck {
+export class GridDockManagerSampleComponent implements OnInit, OnDestroy, AfterViewInit {
     @ViewChild('grid1', { static: true }) public grid1: IgxGridComponent;
     @ViewChild('grid2', { static: true }) public grid2: IgxGridComponent;
     @ViewChild('host', { read: ViewContainerRef }) public host: ViewContainerRef;
-    @ViewChild('dock', { read: ElementRef }) public dockManager: ElementRef<HTMLIgcDockmanagerElement>;
+    @ViewChild('dock', { read: ElementRef }) private dockManagerRef: ElementRef<HTMLIgcDockmanagerElement>;
+
+    public get dockManagerElement(): HTMLIgcDockmanagerElement | null {
+        return this.dockManagerRef?.nativeElement || null;
+    }
     @ViewChild('priceTemplate', { read: TemplateRef })
     public priceTemplate: TemplateRef<any>;
-    @ViewChild(IgxSelectComponent) public select: IgxSelectComponent;
-    @ViewChild('freq', { read: IgxSelectComponent }) public selectFrequency: IgxSelectComponent;
+    @ViewChild('dataVolumeSelect', { read: ElementRef }) private dataVolumeSelectRef: ElementRef<HTMLElement>;
+    @ViewChild('freqSelect', { read: ElementRef }) private freqSelectRef: ElementRef<HTMLElement>;
+
+    private get dataVolumeSelectElement(): HTMLElement | null {
+        return this.dataVolumeSelectRef?.nativeElement || null;
+    }
+
+    private get freqSelectElement(): HTMLElement | null {
+        return this.freqSelectRef?.nativeElement || null;
+    }
+
+    @HostBinding('class.dark-theme')
+    public get darkThemeClass(): boolean {
+        return this.isDarkTheme;
+    }
+
+    @HostBinding('class.light-theme')
+    public get lightThemeClass(): boolean {
+        return !this.isDarkTheme;
+    }
 
     public isDarkTheme = true;
 
@@ -194,7 +216,7 @@ export class GridDockManagerSampleComponent implements OnInit, OnDestroy, AfterV
 
     private destroy$ = new Subject<any>();
 
-    constructor(public dataService: SignalRService, private cdr: ChangeDetectorRef, private elementRef: ElementRef, private renderer:Renderer2) {}
+    constructor(public dataService: SignalRService, private cdr: ChangeDetectorRef) {}
 
     public ngOnInit() {
         this.dataService.startConnection(this.frequency, this.dataVolume, true, false);
@@ -212,24 +234,21 @@ export class GridDockManagerSampleComponent implements OnInit, OnDestroy, AfterV
         this.destroy$.complete();
     }
 
-    public ngDoCheck() {
-        if (this.isDarkTheme) {
-            this.renderer.removeClass(this.elementRef.nativeElement, 'light-theme');
-            this.renderer.addClass(this.elementRef.nativeElement, 'dark-theme');
-        } else {
-            this.renderer.removeClass(this.elementRef.nativeElement, 'dark-theme');
-            this.renderer.addClass(this.elementRef.nativeElement, 'light-theme');
-        }
-    }
 
     public ngAfterViewInit() {
         // This 500ms timeout is used as a workaround for StackBlitz ExpressionChangedAfterItHasBeenChecked Error
         setTimeout(() => {
             // this.paneService.initialPanePosition = { x, y };
             this.grid2.selectColumns(['price', 'change', 'changeP']);
-            this.customOverlaySettings.target = this.select.inputGroup.element.nativeElement;
+            const dataVolumeElement = this.dataVolumeSelectElement;
+            if (dataVolumeElement) {
+                this.customOverlaySettings.target = dataVolumeElement;
+            }
             //this.customOverlaySettings.outlet = this.outlet;
-            this.freqOverlaySettings.target = this.selectFrequency.inputGroup.element.nativeElement;
+            const freqElement = this.freqSelectElement;
+            if (freqElement) {
+                this.freqOverlaySettings.target = freqElement;
+            }
             //this.freqOverlaySettings.outlet = this.outlet;
             this.grid1.groupingExpressions = [{
                 dir: SortingDirection.Desc,
@@ -306,8 +325,11 @@ export class GridDockManagerSampleComponent implements OnInit, OnDestroy, AfterV
                 }
             ]
         };
-        this.dockManager.nativeElement.layout.floatingPanes.push(splitPane);
-        this.docLayout = { ...this.dockManager.nativeElement.layout };
+        const dockElement = this.dockManagerElement;
+        if (dockElement && dockElement.layout) {
+            dockElement.layout.floatingPanes.push(splitPane);
+            this.docLayout = { ...dockElement.layout };
+        }
         this.cdr.detectChanges();
 
         // Create Dock Slot Component
