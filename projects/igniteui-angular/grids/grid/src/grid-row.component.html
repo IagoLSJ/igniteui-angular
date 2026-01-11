@@ -134,8 +134,6 @@
         [class.igx-grid__td--merged]="metaData?.cellMergeMeta.get(col.field)?.rowSpan > 1"
         [class.igx-grid__td--merged-selected]="isSelectionRoot(col)"
         [class.igx-grid__td--merged-hovered]="isHoveredRoot(col)"
-        [isMerged]="metaData?.cellMergeMeta.get(col.field)?.rowSpan > 1"
-        [isPlaceholder]="!!this.metaData?.cellMergeMeta.get(col.field)?.root"
         class="igx-grid__td igx-grid__td--fw"
         [class.igx-grid__td--edited]="key | transactionState:col.field:grid.rowEditable:grid.transactions:grid.pipeTrigger:grid.gridAPI.crudService.cell:grid.gridAPI.crudService.row"
         [class.igx-grid__td--pinned]="col.pinned"
@@ -144,25 +142,29 @@
         [class.igx-grid__td--image]="col.dataType === 'image'"
         [ngClass]="col.cellClasses | igxCellStyleClasses:data[col.field]:data:col.field:viewIndex:grid.pipeTrigger"
         [ngStyle]="col.cellStyles | igxCellStyles:data[col.field]:data:col.field:viewIndex:grid.pipeTrigger"
-        [editMode]="col.editable && this.grid.crudService.targetInEdit(index, col.index)"
-        [column]="col"
-        [formatter]="col.formatter"
-        [intRow]="this"
-        [lastPinned]="col.columnLayoutChild ? null : col.isLastPinned"
-        [firstPinned]="col.columnLayoutChild ? null : col.isFirstPinned"
-        [rowData]="data"
         [style.min-width]="col.resolvedWidth"
         [style.max-width]="col.resolvedWidth"
         [style.flex-basis]="col.resolvedWidth"
-        [width]="col.getCellWidth()"
-        [visibleColumnIndex]="col.visibleIndex"
-        [value]="data | dataMapper:col.field:grid.pipeTrigger:data[col.field]:col.hasNestedPath"
-        [cellTemplate]="col.bodyTemplate"
-        [cellValidationErrorTemplate]="col.errorTemplate"
-        [lastSearchInfo]="grid.lastSearchInfo"
-        [active]="isCellActive(col.visibleIndex)"
-        [cellSelectionMode]="grid.cellSelection"
-        [displayPinnedChip]="shouldDisplayPinnedChip(col)"
+        [config]="{
+            column: col,
+            isMerged: metaData?.cellMergeMeta.get(col.field)?.rowSpan > 1,
+            isPlaceholder: !!this.metaData?.cellMergeMeta.get(col.field)?.root,
+            intRow: this,
+            editMode: col.editable && this.grid.crudService.targetInEdit(index, col.index),
+            formatter: col.formatter,
+            lastPinned: col.columnLayoutChild ? null : col.isLastPinned,
+            firstPinned: col.columnLayoutChild ? null : col.isFirstPinned,
+            rowData: data,
+            width: col.getCellWidth(),
+            visibleColumnIndex: col.visibleIndex,
+            value: data | dataMapper:col.field:grid.pipeTrigger:data[col.field]:col.hasNestedPath,
+            cellTemplate: col.bodyTemplate,
+            cellValidationErrorTemplate: col.errorTemplate,
+            lastSearchInfo: grid.lastSearchInfo,
+            active: isCellActive(col.visibleIndex),
+            cellSelectionMode: grid.cellSelection,
+            displayPinnedChip: shouldDisplayPinnedChip(col)
+        }"
         #cell>
     </igx-grid-cell>
 </ng-template>
@@ -172,8 +174,6 @@
         [class.igx-grid__td--merged]="metaData?.cellMergeMeta.get(col.field)?.rowSpan > 1"
         [class.igx-grid__td--merged-selected]="isSelectionRoot(col)"
         [class.igx-grid__td--merged-hovered]="isHoveredRoot(col)"
-        [isMerged]="metaData?.cellMergeMeta.get(col.field)?.rowSpan > 1"
-        [isPlaceholder]="!!this.metaData?.cellMergeMeta.get(col.field)?.root"
         [class.igx-grid__td--pinned]="col.pinned"
         class="igx-grid__td igx-grid__td--fw igx-grid__td--tree-cell"
         [class.igx-grid__td--edited]="key | transactionState:col.field:grid.rowEditable:grid.transactions:grid.pipeTrigger:grid.gridAPI.crudService.cell:grid.gridAPI.crudService.row"
@@ -181,24 +181,29 @@
         [ngClass]="col.cellClasses | igxCellStyleClasses:data[col.field]:data:col.field:viewIndex:grid.pipeTrigger"
         [ngStyle]="col.cellStyles | igxCellStyles:data[col.field]:data:col.field:viewIndex:grid.pipeTrigger"
         [expanded]="expanded"
-        [editMode]="col.editable && this.grid.crudService.targetInEdit(index, col.index)"
-        [column]="col"
-        [formatter]="col.formatter"
-        [intRow]="this"
-        [lastPinned]="col.columnLayoutChild ? null : col.isLastPinned"
-        [rowData]="data"
         [style.min-width]="col.resolvedWidth"
         [style.max-width]="col.resolvedWidth"
         [style.flex-basis]="col.resolvedWidth"
-        [width]="col.getCellWidth()"
-        [visibleColumnIndex]="col.visibleIndex"
-        [value]="data | dataMapper:col.field:grid.pipeTrigger:data[col.field]:col.hasNestedPath"
-        [cellTemplate]="col.bodyTemplate"
-        [cellValidationErrorTemplate]="col.errorTemplate"
-        [lastSearchInfo]="grid.lastSearchInfo"
-        [active]="isCellActive(col.visibleIndex)"
-        [cellSelectionMode]="grid.cellSelection"
-        [displayPinnedChip]="shouldDisplayPinnedChip(col)"
+        [config]="{
+            column: col,
+            isMerged: metaData?.cellMergeMeta.get(col.field)?.rowSpan > 1,
+            isPlaceholder: !!this.metaData?.cellMergeMeta.get(col.field)?.root,
+            intRow: this,
+            editMode: col.editable && this.grid.crudService.targetInEdit(index, col.index),
+            formatter: col.formatter,
+            lastPinned: col.columnLayoutChild ? null : col.isLastPinned,
+            firstPinned: col.columnLayoutChild ? null : col.isFirstPinned,
+            rowData: data,
+            width: col.getCellWidth(),
+            visibleColumnIndex: col.visibleIndex,
+            value: data | dataMapper:col.field:grid.pipeTrigger:data[col.field]:col.hasNestedPath,
+            cellTemplate: col.bodyTemplate,
+            cellValidationErrorTemplate: col.errorTemplate,
+            lastSearchInfo: grid.lastSearchInfo,
+            active: isCellActive(col.visibleIndex),
+            cellSelectionMode: grid.cellSelection,
+            displayPinnedChip: shouldDisplayPinnedChip(col)
+        }"
         #cell>
     </igx-expandable-grid-cell>
 </ng-template>
@@ -207,30 +212,31 @@
     <igx-grid-cell
         class="igx-grid__td igx-grid__td--fw"
         [class.igx-grid__td--edited]="key | transactionState:col.field:grid.rowEditable:grid.transactions:grid.pipeTrigger:grid.gridAPI.crudService.cell:grid.gridAPI.crudService.row"
-
         [class.igx-grid__td--pinned]="col.pinned"
         [class.igx-grid__td--number]="col.dataType === 'number' || col.dataType === 'percent' || col.dataType === 'currency'"
         [ngClass]="col.cellClasses | igxCellStyleClasses:data[col.field]:data:col.field:viewIndex:grid.pipeTrigger"
         [ngStyle]="col.cellStyles | igxCellStyles:data[col.field]:data:col.field:viewIndex:grid.pipeTrigger"
-        [editMode]="col.editable && this.grid.crudService.targetInEdit(index, col.index)"
-        [column]="col"
         [style.grid-row-end]="col.rowEnd"
         [style.grid-column-end]="col.colEnd"
         [style.grid-row-start]="col.rowStart"
         [style.grid-column-start]="col.colStart"
-        [lastPinned]="col.columnLayoutChild ? null : col.isLastPinned"
-        [firstPinned]="col.columnLayoutChild ? null : col.isFirstPinned"
-        [formatter]="col.formatter"
-        [intRow]="this"
-        [rowData]="data"
-        [visibleColumnIndex]="col.visibleIndex"
-        [value]="data | dataMapper:col.field:grid.pipeTrigger:data[col.field]:col.hasNestedPath"
-        [cellTemplate]="col.bodyTemplate"
-        [cellValidationErrorTemplate]="col.errorTemplate"
-        [lastSearchInfo]="grid.lastSearchInfo"
-        [active]="isCellActive(col.visibleIndex)"
-        [cellSelectionMode]="grid.cellSelection"
-        [displayPinnedChip]="shouldDisplayPinnedChip(col)"
+        [config]="{
+            column: col,
+            intRow: this,
+            editMode: col.editable && this.grid.crudService.targetInEdit(index, col.index),
+            formatter: col.formatter,
+            lastPinned: col.columnLayoutChild ? null : col.isLastPinned,
+            firstPinned: col.columnLayoutChild ? null : col.isFirstPinned,
+            rowData: data,
+            visibleColumnIndex: col.visibleIndex,
+            value: data | dataMapper:col.field:grid.pipeTrigger:data[col.field]:col.hasNestedPath,
+            cellTemplate: col.bodyTemplate,
+            cellValidationErrorTemplate: col.errorTemplate,
+            lastSearchInfo: grid.lastSearchInfo,
+            active: isCellActive(col.visibleIndex),
+            cellSelectionMode: grid.cellSelection,
+            displayPinnedChip: shouldDisplayPinnedChip(col)
+        }"
         #cell>
     </igx-grid-cell>
 </ng-template>
@@ -239,30 +245,32 @@
     <igx-expandable-grid-cell
         class="igx-grid__td igx-grid__td--fw igx-grid__td--tree-cell"
         [class.igx-grid__td--edited]="key | transactionState:col.field:grid.rowEditable:grid.transactions:grid.pipeTrigger:grid.gridAPI.crudService.cell:grid.gridAPI.crudService.row"
-
         [class.igx-grid__td--pinned]="col.pinned"
         [class.igx-grid__td--number]="(col.dataType === 'number' || col.dataType === 'percent' || col.dataType === 'currency') && col.visibleIndex !== 0"
         [ngClass]="col.cellClasses | igxCellStyleClasses:data[col.field]:data:col.field:viewIndex:grid.pipeTrigger"
         [ngStyle]="col.cellStyles | igxCellStyles:data[col.field]:data:col.field:viewIndex:grid.pipeTrigger"
         [expanded]="expanded"
-        [editMode]="col.editable && this.grid.crudService.targetInEdit(index, col.index)"
-        [column]="col"
         [style.grid-row-end]="col.rowEnd"
         [style.grid-column-end]="col.colEnd"
         [style.grid-row-start]="col.rowStart"
         [style.grid-column-start]="col.colStart"
-        [lastPinned]="col.columnLayoutChild ? null : col.isLastPinned"
-        [formatter]="col.formatter"
-        [intRow]="this"
-        [rowData]="data"
-        [visibleColumnIndex]="col.visibleIndex"
-        [value]="data | dataMapper:col.field:grid.pipeTrigger:data[col.field]:col.hasNestedPath"
-        [cellTemplate]="col.bodyTemplate"
-        [cellValidationErrorTemplate]="col.errorTemplate"
-        [lastSearchInfo]="grid.lastSearchInfo"
-        [active]="isCellActive(col.visibleIndex)"
-        [cellSelectionMode]="grid.cellSelection"
-        [displayPinnedChip]="shouldDisplayPinnedChip(col)"
+        [config]="{
+            column: col,
+            intRow: this,
+            editMode: col.editable && this.grid.crudService.targetInEdit(index, col.index),
+            formatter: col.formatter,
+            lastPinned: col.columnLayoutChild ? null : col.isLastPinned,
+            firstPinned: col.columnLayoutChild ? null : col.isFirstPinned,
+            rowData: data,
+            visibleColumnIndex: col.visibleIndex,
+            value: data | dataMapper:col.field:grid.pipeTrigger:data[col.field]:col.hasNestedPath,
+            cellTemplate: col.bodyTemplate,
+            cellValidationErrorTemplate: col.errorTemplate,
+            lastSearchInfo: grid.lastSearchInfo,
+            active: isCellActive(col.visibleIndex),
+            cellSelectionMode: grid.cellSelection,
+            displayPinnedChip: shouldDisplayPinnedChip(col)
+        }"
         #cell>
     </igx-expandable-grid-cell>
 </ng-template>

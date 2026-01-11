@@ -1,4 +1,4 @@
-﻿import { useAnimation } from '@angular/animations';
+import { useAnimation } from '@angular/animations';
 import {
     ChangeDetectionStrategy,
     ChangeDetectorRef,
@@ -60,6 +60,7 @@ import { IgxInputDirective, IgxInputGroupComponent, IgxPrefixDirective, IgxSuffi
 import { IgxCheckboxComponent } from 'igniteui-angular/checkbox';
 import { IgxDatePickerComponent } from 'igniteui-angular/date-picker';
 import { IgxTimePickerComponent } from 'igniteui-angular/time-picker';
+import { IgxGridCellConfig } from './cell.config';
 
 /**
  * Providing reference to `IgxGridCellComponent`:
@@ -148,131 +149,60 @@ export class IgxGridCellComponent implements OnInit, OnChanges, OnDestroy, CellT
     @ViewChild('defaultError', { read: TemplateRef, static: true })
     public defaultErrorTemplate: TemplateRef<any>;
 
-    /**
-     * Gets the column of the cell.
-     * ```typescript
-     *  let cellColumn = this.cell.column;
-     * ```
-     *
-     * @memberof IgxGridCellComponent
-     */
     @Input()
-    public column: ColumnType;
+    public config!: IgxGridCellConfig;
 
-    /**
-     * @hidden
-     * @internal
-     */
-    @Input()
-    public isPlaceholder: boolean;
+    public get column(): ColumnType {
+        return this.config.column;
+    }
 
-    /**
-        Gets whether this cell is a merged cell.
-     */
-    @Input()
-    public isMerged: boolean;
+    public get isPlaceholder(): boolean {
+        return this.config.isPlaceholder ?? false;
+    }
 
-    /**
-     * @hidden
-     * @internal
-     */
+    public get isMerged(): boolean {
+        return this.config.isMerged ?? false;
+    }
+
     protected get formGroup(): FormGroup {
         return this.grid.validation.getFormGroup(this.intRow.key);
     }
 
-    /**
-     * @hidden
-     * @internal
-     */
-    @Input()
-    public intRow: IgxRowDirective;
+    public get intRow(): IgxRowDirective {
+        return this.config.intRow;
+    }
 
-    /**
-     * Gets the row of the cell.
-     * ```typescript
-     * let cellRow = this.cell.row;
-     * ```
-     *
-     * @memberof IgxGridCellComponent
-     */
-    @Input()
     public get row(): RowType {
         return this.grid.createRow(this.intRow.index);
     }
 
-    /**
-     * Gets the data of the row of the cell.
-     * ```typescript
-     * let rowData = this.cell.rowData;
-     * ```
-     *
-     * @memberof IgxGridCellComponent
-     */
-    @Input()
-    public rowData: any;
+    public get rowData(): any {
+        return this.config.rowData;
+    }
 
-    /**
-     * @hidden
-     * @internal
-     */
-    @Input()
-    public columnData: any;
+    public get columnData(): any {
+        return this.config.columnData;
+    }
 
-    /**
-     * Sets/gets the template of the cell.
-     * ```html
-     * <ng-template #cellTemplate igxCell let-value>
-     *   <div style="font-style: oblique; color:blueviolet; background:red">
-     *       <span>{{value}}</span>
-     *   </div>
-     * </ng-template>
-     * ```
-     * ```typescript
-     * @ViewChild('cellTemplate',{read: TemplateRef})
-     * cellTemplate: TemplateRef<any>;
-     * ```
-     * ```typescript
-     * this.cell.cellTemplate = this.cellTemplate;
-     * ```
-     * ```typescript
-     * let template =  this.cell.cellTemplate;
-     * ```
-     *
-     * @memberof IgxGridCellComponent
-     */
-    @Input()
-    public cellTemplate: TemplateRef<any>;
+    public get cellTemplate(): TemplateRef<any> {
+        return this.config.cellTemplate;
+    }
 
-    @Input()
-    public cellValidationErrorTemplate: TemplateRef<any>;
+    public get cellValidationErrorTemplate(): TemplateRef<any> {
+        return this.config.cellValidationErrorTemplate;
+    }
 
-    @Input()
-    public pinnedIndicator: TemplateRef<any>;
+    public get pinnedIndicator(): TemplateRef<any> {
+        return this.config.pinnedIndicator;
+    }
 
-    /**
-     * Sets/gets the cell value.
-     * ```typescript
-     * this.cell.value = "Cell Value";
-     * ```
-     * ```typescript
-     * let cellValue = this.cell.value;
-     * ```
-     *
-     * @memberof IgxGridCellComponent
-     */
-    @Input()
-    public value: any;
+    public get value(): any {
+        return this.config.value;
+    }
 
-    /**
-     * Gets the cell formatter.
-     * ```typescript
-     * let cellForamatter = this.cell.formatter;
-     * ```
-     *
-     * @memberof IgxGridCellComponent
-     */
-    @Input()
-    public formatter: (value: any, rowData?: any, columnData?: any) => any;
+    public get formatter(): (value: any, rowData?: any, columnData?: any) => any {
+        return this.config.formatter;
+    }
 
     /**
      * Gets the cell template context object.
@@ -382,17 +312,11 @@ export class IgxGridCellComponent implements OnInit, OnChanges, OnDestroy, CellT
         return this.column.index;
     }
 
-    /**
-     * Returns the column visible index.
-     * ```typescript
-     * let visibleColumnIndex = this.cell.visibleColumnIndex;
-     * ```
-     *
-     * @memberof IgxGridCellComponent
-     */
     @HostBinding('attr.data-visibleIndex')
-    @Input()
     public get visibleColumnIndex() {
+        if (this.config.visibleColumnIndex !== undefined) {
+            return this.column.columnLayoutChild ? this.column.visibleIndex : this.config.visibleColumnIndex;
+        }
         return this.column.columnLayoutChild ? this.column.visibleIndex : this._vIndex;
     }
 
@@ -462,61 +386,50 @@ export class IgxGridCellComponent implements OnInit, OnChanges, OnDestroy, CellT
         return this.element.nativeElement;
     }
 
-    /**
-     * @hidden
-     * @internal
-     */
-    @Input()
     public get cellSelectionMode() {
-        return this._cellSelection;
+        return this.config.cellSelectionMode ?? this._cellSelection;
     }
 
     public set cellSelectionMode(value) {
-        if (this._cellSelection === value) {
+        const selection = value ?? this.config.cellSelectionMode;
+        if (this._cellSelection === selection) {
             return;
         }
         this.zone.runOutsideAngular(() => {
-            if (value === GridSelectionMode.multiple) {
-                this.addPointerListeners(value);
+            if (selection === GridSelectionMode.multiple) {
+                this.addPointerListeners(selection);
             } else {
                 this.removePointerListeners(this._cellSelection);
             }
         });
-        this._cellSelection = value;
+        this._cellSelection = selection;
     }
 
-    /**
-     * @hidden
-     * @internal
-     */
-    @Input()
+    public get lastSearchInfo(): ISearchInfo {
+        return this.config.lastSearchInfo ?? this._lastSearchInfo;
+    }
+
     public set lastSearchInfo(value: ISearchInfo) {
         this._lastSearchInfo = value;
-        this.highlightText(this._lastSearchInfo.searchText, this._lastSearchInfo.caseSensitive, this._lastSearchInfo.exactMatch);
+        if (value) {
+            this.highlightText(value.searchText, value.caseSensitive, value.exactMatch);
+        }
     }
 
-    /**
-     * @hidden
-     * @internal
-     */
-    @Input()
     @HostBinding('class.igx-grid__td--pinned-last')
-    public lastPinned = false;
+    public get lastPinned(): boolean {
+        return this.config.lastPinned ?? false;
+    }
 
-    /**
-     * @hidden
-     * @internal
-     */
-    @Input()
     @HostBinding('class.igx-grid__td--pinned-first')
-    public firstPinned = false;
+    public get firstPinned(): boolean {
+        return this.config.firstPinned ?? false;
+    }
 
-    /**
-     * Returns whether the cell is in edit mode.
-     */
-    @Input({ transform: booleanAttribute })
     @HostBinding('class.igx-grid__td--editing')
-    public editMode = false;
+    public get editMode(): boolean {
+        return this.config.editMode ?? false;
+    }
 
     /**
      * Sets/get the `role` property of the cell.
@@ -615,23 +528,14 @@ export class IgxGridCellComponent implements OnInit, OnChanges, OnDestroy, CellT
         return this.column.colStart;
     }
 
-    /**
-     * Gets the width of the cell.
-     * ```typescript
-     * let cellWidth = this.cell.width;
-     * ```
-     *
-     * @memberof IgxGridCellComponent
-     */
-    @Input()
-    public width = '';
+    public get width(): string {
+        return this.config.width ?? '';
+    }
 
-    /**
-     * @hidden
-     */
-    @Input()
     @HostBinding('class.igx-grid__td--active')
-    public active = false;
+    public get active(): boolean {
+        return this.config.active ?? false;
+    }
 
     @HostBinding('attr.aria-selected')
     public get ariaSelected() {
@@ -719,12 +623,10 @@ export class IgxGridCellComponent implements OnInit, OnChanges, OnDestroy, CellT
         return this.column.editable && !this.intRow.disabled;
     }
 
-    /**
-     * @hidden
-     */
-    @Input()
     @HostBinding('class.igx-grid__td--row-pinned-first')
-    public displayPinnedChip = false;
+    public get displayPinnedChip(): boolean {
+        return this.config.displayPinnedChip ?? false;
+    }
 
     @HostBinding('style.min-height.px')
     protected get minHeight() {
@@ -882,16 +784,25 @@ export class IgxGridCellComponent implements OnInit, OnChanges, OnDestroy, CellT
      * @internal
      */
     public ngOnInit() {
+        if (this.config.cellSelectionMode !== undefined) {
+            this._cellSelection = this.config.cellSelectionMode;
+        }
+        if (this.config.visibleColumnIndex !== undefined) {
+            this._vIndex = this.config.visibleColumnIndex;
+        }
+        if (this.config.lastSearchInfo) {
+            this._lastSearchInfo = this.config.lastSearchInfo;
+        }
         this.zone.runOutsideAngular(() => {
             this.nativeElement.addEventListener('pointerdown', this.pointerdown);
-            this.addPointerListeners(this.cellSelectionMode);
+            const selectionMode = this.config.cellSelectionMode ?? this._cellSelection;
+            this.addPointerListeners(selectionMode);
         });
         if (this.platformUtil.isIOS) {
             this.touchManager.addEventListener(this.nativeElement, 'doubletap', this.onDoubleClick, {
                 cssProps: {} /* don't disable user-select, etc */
             });
         }
-
     }
 
     public ngAfterViewInit() {
@@ -949,27 +860,50 @@ export class IgxGridCellComponent implements OnInit, OnChanges, OnDestroy, CellT
      * @internal
      */
     public ngOnChanges(changes: SimpleChanges): void {
-        if (changes.editMode && changes.editMode.currentValue && this.formControl) {
-            // ensure when values change, form control is forced to be marked as touche.
-            this.formControl.valueChanges.pipe(takeWhile(() => this.editMode)).subscribe(() => this.formControl.markAsTouched());
-            // while in edit mode subscribe to value changes on the current form control and set to editValue
-            this.formControl.statusChanges.pipe(takeWhile(() => this.editMode)).subscribe(status => {
-                if (status === 'INVALID' && this.errorTooltip.length > 0) {
-                    this.cdr.detectChanges();
-                    const tooltip = this.errorTooltip.first;
-                    this.resizeAndRepositionOverlayById(tooltip.overlayId, this.errorTooltip.first.element.offsetWidth);
+        if (changes.config) {
+            const configChange = changes.config;
+            if (configChange.currentValue) {
+                const config = configChange.currentValue;
+                const prevConfig = configChange.previousValue || {};
+
+                if (config.cellSelectionMode !== prevConfig.cellSelectionMode && config.cellSelectionMode !== undefined) {
+                    this._cellSelection = config.cellSelectionMode;
+                    this.zone.runOutsideAngular(() => {
+                        if (config.cellSelectionMode === GridSelectionMode.multiple) {
+                            this.addPointerListeners(config.cellSelectionMode);
+                        } else {
+                            this.removePointerListeners(this._cellSelection);
+                        }
+                    });
                 }
-            });
-        }
-        if (changes.value && !changes.value.firstChange) {
-            if (this.highlight) {
-                this.highlight.lastSearchInfo.searchText = this.grid.lastSearchInfo.searchText;
-                this.highlight.lastSearchInfo.caseSensitive = this.grid.lastSearchInfo.caseSensitive;
-                this.highlight.lastSearchInfo.exactMatch = this.grid.lastSearchInfo.exactMatch;
-            }
-            const isInEdit = this.grid.rowEditable ? this.row.inEditMode : this.editMode;
-            if (this.formControl && this.formControl.value !== changes.value.currentValue && !isInEdit) {
-                this.formControl.setValue(changes.value.currentValue);
+                if (config.visibleColumnIndex !== prevConfig.visibleColumnIndex && config.visibleColumnIndex !== undefined) {
+                    this._vIndex = config.visibleColumnIndex;
+                }
+                if (config.lastSearchInfo !== prevConfig.lastSearchInfo && config.lastSearchInfo) {
+                    this._lastSearchInfo = config.lastSearchInfo;
+                    this.highlightText(config.lastSearchInfo.searchText, config.lastSearchInfo.caseSensitive, config.lastSearchInfo.exactMatch);
+                }
+                if (config.editMode !== prevConfig.editMode && config.editMode && this.formControl) {
+                    this.formControl.valueChanges.pipe(takeWhile(() => this.editMode)).subscribe(() => this.formControl.markAsTouched());
+                    this.formControl.statusChanges.pipe(takeWhile(() => this.editMode)).subscribe(status => {
+                        if (status === 'INVALID' && this.errorTooltip.length > 0) {
+                            this.cdr.detectChanges();
+                            const tooltip = this.errorTooltip.first;
+                            this.resizeAndRepositionOverlayById(tooltip.overlayId, this.errorTooltip.first.element.offsetWidth);
+                        }
+                    });
+                }
+                if (config.value !== prevConfig.value && !configChange.firstChange && config.value !== undefined) {
+                    if (this.highlight) {
+                        this.highlight.lastSearchInfo.searchText = this.grid.lastSearchInfo.searchText;
+                        this.highlight.lastSearchInfo.caseSensitive = this.grid.lastSearchInfo.caseSensitive;
+                        this.highlight.lastSearchInfo.exactMatch = this.grid.lastSearchInfo.exactMatch;
+                    }
+                    const isInEdit = this.grid.rowEditable ? this.row.inEditMode : this.editMode;
+                    if (this.formControl && this.formControl.value !== config.value && !isInEdit) {
+                        this.formControl.setValue(config.value);
+                    }
+                }
             }
         }
     }

@@ -105,6 +105,7 @@ export * from './grid-navigation.service';
 export * from './grid-validation.service';
 export * from './grid.common';
 export { IgxGridCellComponent } from './cell.component';
+export { IgxGridCellConfig } from './cell.config';
 export * from './grouping/grid-group-by-area.component';
 export * from './grouping/group-by-area.directive';
 export * from './grid-mrl-navigation.service';
