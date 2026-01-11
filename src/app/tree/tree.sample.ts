@@ -1,10 +1,8 @@
-import { useAnimation } from '@angular/animations';
 import { NgTemplateOutlet, AsyncPipe } from '@angular/common';
 import { AfterViewInit, ChangeDetectorRef, Component, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
     IgxTreeNodeComponent,
-    IgxTreeSearchResolver,
     IgxTreeComponent,
     ITreeNodeTogglingEventArgs,
     ITreeNodeToggledEventArgs,
@@ -24,32 +22,19 @@ import {
 import { Subject } from 'rxjs';
 import { cloneDeep } from 'lodash-es';
 import { HIERARCHICAL_SAMPLE_DATA } from '../shared/sample-data';
-import { growVerIn, growVerOut } from 'igniteui-angular/animations';
 import { SizeSelectorComponent } from '../size-selector/size-selector.component';
-
-interface CompanyData {
-    ID: string;
-    CompanyName?: string;
-    ContactName?: string;
-    ContactTitle?: string;
-    Address?: string;
-    City?: string;
-    Region?: string;
-    PostalCode?: string;
-    Country?: string;
-    Phone?: string;
-    Fax?: string;
-    ChildCompanies?: CompanyData[];
-    selected?: boolean;
-    expanded?: boolean;
-    disabled?: boolean;
-    active?: boolean;
-}
+import { CompanyData } from './models/company-data.model';
+import { SelectionModeOption } from './models/selection-mode-option.model';
+import { TreeDataService } from './services/tree-data.service';
+import { TreeSelectionService } from './services/tree-selection.service';
+import { TreeDataHelper } from './utils/tree-data.helper';
+import { TreeAnimationHelper } from './utils/tree-animation.helper';
 
 @Component({
     selector: 'app-tree-sample',
     templateUrl: 'tree.sample.html',
     styleUrls: ['tree.sample.scss'],
+    providers: [TreeDataService, TreeSelectionService],
     imports: [
         IgxLayoutDirective,
         IgxInputGroupComponent,
@@ -74,9 +59,9 @@ export class TreeSampleComponent implements AfterViewInit {
     public tree: IgxTreeComponent;
 
     @ViewChild('test', { static: true })
-    public testNode: IgxTreeNodeComponent<any>;
+    public testNode: IgxTreeNodeComponent<CompanyData>;
 
-    public selectionModes = [];
+    public selectionModes: SelectionModeOption[] = [];
 
     public selectionMode = 'Cascading';
 
@@ -88,12 +73,15 @@ export class TreeSampleComponent implements AfterViewInit {
 
     public asyncItems = new Subject<CompanyData[]>();
     public loadDuration = 6000;
-    private iteration = 0;
-    private addedIndex = 0;
 
     private initData: CompanyData[];
+    private containsComparer = TreeDataHelper.createContainsComparer();
 
-    constructor(private cdr: ChangeDetectorRef) {
+    constructor(
+        private cdr: ChangeDetectorRef,
+        private treeDataService: TreeDataService,
+        private treeSelectionService: TreeSelectionService
+    ) {
         this.selectionModes = [
             { label: 'None', selectMode: 'None', selected: this.selectionMode === 'None', togglable: true },
             { label: 'Multiple', selectMode: 'Multiple', selected: this.selectionMode === 'Multiple', togglable: true },
@@ -101,11 +89,11 @@ export class TreeSampleComponent implements AfterViewInit {
         ];
         this.data = cloneDeep(HIERARCHICAL_SAMPLE_DATA);
         this.initData = cloneDeep(HIERARCHICAL_SAMPLE_DATA);
-        this.mapData(this.data);
+        TreeDataHelper.mapData(this.data);
     }
 
     public setDummy() {
-        this.data = generateHierarchicalData('ChildCompanies', 3, 6, 0);
+        this.data = this.treeDataService.setDummy();
     }
 
     public handleNodeExpanding(_event: ITreeNodeTogglingEventArgs) {
@@ -126,77 +114,23 @@ export class TreeSampleComponent implements AfterViewInit {
 
 
     public addDataChild(key: string) {
-        const targetNode = this.getNodeByName(key);
-        if (!targetNode.data.ChildCompanies) {
-            targetNode.data.ChildCompanies = [];
-        }
-        const data = targetNode.data.ChildCompanies;
-        data.push(Object.assign({}, data[data.length - 1],
-            { CompanyName: `Added ${this.addedIndex++}`, selected: this.addedIndex % 2 === 0, ChildCompanies: [] }));
-        this.cdr.detectChanges();
+        this.treeDataService.addDataChild(this.tree, key);
     }
 
     public deleteLastChild(key: string) {
-        const targetNode = this.getNodeByName(key);
-        if (!targetNode.data.ChildCompanies) {
-            targetNode.data.ChildCompanies = [];
-        }
-        const data = targetNode.data.ChildCompanies;
-        data.splice(data.length - 1, 1);
+        this.treeDataService.deleteLastChild(this.tree, key);
     }
 
     public deleteNodesFromParent(key: string, deleteNodes: string) {
-        const parent = this.getNodeByName(key);
-        const nodeIds = deleteNodes.split(';');
-        nodeIds.forEach((nodeId) => {
-            const index = parent.data.ChildCompanies.findIndex(e => e.ID === nodeId);
-            parent.data.ChildCompanies.splice(index, 1);
-        });
+        this.treeDataService.deleteNodesFromParent(this.tree, key, deleteNodes);
     }
 
     public addSeveralNodes(key: string) {
-        const targetNode = this.getNodeByName(key);
-        if (!targetNode.data.ChildCompanies) {
-            targetNode.data.ChildCompanies = [];
-        }
-        const arr = [{
-            ID: 'Some1',
-            CompanyName: 'Test 1',
-            selected: false,
-            ChildCompanies: [{
-                ID: 'Some4',
-                CompanyName: 'Test 5',
-                selected: true,
-            }]
-        },
-        {
-            ID: 'Some2',
-            CompanyName: 'Test 2',
-            selected: false
-        },
-        {
-            ID: 'Some3',
-            CompanyName: 'Test 3',
-            selected: false
-        }];
-        this.getNodeByName(key).data.ChildCompanies = arr;
-        this.cdr.detectChanges();
+        this.treeDataService.addSeveralNodes(this.tree, key);
     }
 
-    public handleRemote(node: IgxTreeNodeComponent<any>, event: boolean) {
-        console.log(event);
-        node.loading = true;
-        setTimeout(() => {
-            const newData: CompanyData[] = [];
-            for (let i = 0; i < 10; i++) {
-                newData.push({
-                    ID: `Remote ${i}`,
-                    CompanyName: `Remote ${i}`
-                });
-            }
-            node.loading = false;
-            this.asyncItems.next(newData);
-        }, this.loadDuration);
+    public handleRemote(node: IgxTreeNodeComponent<CompanyData>, event: boolean) {
+        this.treeDataService.handleRemote(node, event, this.asyncItems, this.loadDuration);
     }
 
     public ngAfterViewInit() {
@@ -208,80 +142,39 @@ export class TreeSampleComponent implements AfterViewInit {
     public toggleSelectionMode() { }
 
     public addItem() {
-        const newArray = [...this.data];
-        const children = Math.floor(Math.random() * 4);
-        const createChildren = (count: number): CompanyData[] => {
-            const array = [];
-            for (let i = 0; i < count; i++) {
-                this.iteration++;
-                array.push({
-                    ID: `TEST${this.iteration}`,
-                    CompanyName: `TEST${this.iteration}`
-                });
-            }
-            return array;
-        };
-
-        this.iteration++;
-        newArray.push({
-            ID: `TEST${this.iteration}`,
-            CompanyName: `TEST${this.iteration}`,
-            ChildCompanies: createChildren(children)
-        });
-        this.data = newArray;
+        this.data = this.treeDataService.addItem(this.data);
     }
 
     public resetData() {
-        this.data = [...this.initData];
+        this.data = this.treeDataService.resetData(this.initData);
     }
 
     public get animationSettings() {
-        return {
-            openAnimation: useAnimation(growVerIn, {
-                params: {
-                    duration: `${this.animationDuration}ms`
-                }
-            }),
-            closeAnimation: useAnimation(growVerOut, {
-                params: {
-                    duration: `${this.animationDuration}ms`
-                }
-            })
-        };
+        return TreeAnimationHelper.getAnimationSettings(this.animationDuration);
     }
 
     public selectSpecific() {
-        this.tree.nodes.toArray()[0].selected = true;
-        this.tree.nodes.toArray()[14].selected = true;
-        this.tree.nodes.toArray()[1].selected = true;
-        this.tree.nodes.toArray()[4].selected = true;
+        this.treeSelectionService.selectSpecific(this.tree);
     }
 
     public selectAll() {
-        this.tree.nodes.toArray().forEach(node => node.selected = true);
+        this.treeSelectionService.selectAll(this.tree);
     }
 
     public deselectSpecific() {
-        const arr = [
-            this.tree.nodes.toArray()[0],
-            this.tree.nodes.toArray()[14],
-            this.tree.nodes.toArray()[1],
-            this.tree.nodes.toArray()[4]
-        ];
-        this.tree.deselectAll(arr);
+        this.treeSelectionService.deselectSpecific(this.tree);
     }
 
     public deselectAll() {
-        this.tree.deselectAll();
+        this.treeSelectionService.deselectAll(this.tree);
     }
 
     public changeNodeSelectionState() {
-        this.tree.nodes.toArray()[8].selected = !this.tree.nodes.toArray()[8].selected;
+        this.treeSelectionService.changeNodeSelectionState(this.tree);
     }
 
     public changeNodeData() {
-        this.tree.nodes.toArray()[8].data.selected = !this.tree.nodes.toArray()[8].data.selected;
-        this.cdr.detectChanges();
+        this.treeSelectionService.changeNodeData(this.tree);
     }
 
     public nodeSelection(event: ITreeNodeSelectionEvent) {
@@ -297,7 +190,7 @@ export class TreeSampleComponent implements AfterViewInit {
         return searchResult;
     }
 
-    public activeNodeChanged(_event: IgxTreeNode<any>) {
+    public activeNodeChanged(_event: IgxTreeNode<CompanyData>) {
         // active node changed
     }
 
@@ -305,36 +198,4 @@ export class TreeSampleComponent implements AfterViewInit {
         // console.log(evt);
     }
 
-    private mapData(data: any[]) {
-        data.forEach(x => {
-            x.selected = false;
-            if (x.hasOwnProperty('ChildCompanies') && x.ChildCompanies.length) {
-                this.mapData(x.ChildCompanies);
-            }
-        });
-    }
-
-    private containsComparer: IgxTreeSearchResolver =
-        (term: any, node: IgxTreeNodeComponent<any>) => node.data?.ID?.toLowerCase()?.indexOf(term.toLowerCase()) > -1;
-
-    private getNodeByName(key: string) {
-        return this.tree.findNodes(key, (_term: string, n: IgxTreeNodeComponent<any>) => n.data?.ID === _term)[0];
-    }
 }
-
-
-const generateHierarchicalData = (childKey: string, level = 7, children = 6, iter = 0): any[] => {
-    const returnArray = [];
-    if (level === 0) {
-        return returnArray;
-    }
-    for (let i = 0; i < children; i++) {
-        // create Root member
-        iter++;
-        returnArray.push({
-            ID: `Dummy${iter}`, CompanyName: `Dummy-${iter}`,
-            [childKey]: generateHierarchicalData(childKey, children, level - 1)
-        });
-    }
-    return returnArray;
-};
