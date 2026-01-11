@@ -11,7 +11,7 @@
                 <igx-grid-toolbar-hiding></igx-grid-toolbar-hiding>
                 <!-- <igx-grid-toolbar-advanced-filtering></igx-grid-toolbar-advanced-filtering> -->
             </igx-grid-toolbar-actions>
-            <button igxButton="outlined" #columnSelectionButton igxRipple (click)="toggleColumnSelection()"
+            <button igxButton="outlined" [igxToggleAction]="columnSelectionDropdown" [overlaySettings]="_overlaySettings" [igxToggleOutlet]="grid1.outlet" igxRipple
             >
                 <igx-checkbox [checked]="grid1.selectedColumns().length > 0" [disableRipple]="true" [readonly]="true" [disabled]="true">
                 </igx-checkbox>

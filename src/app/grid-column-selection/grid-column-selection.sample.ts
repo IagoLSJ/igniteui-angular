@@ -74,8 +74,6 @@ export class GridColumnSelectionSampleComponent implements OnInit, AfterViewInit
     @ViewChild('columnSelectionDropdown', { read: IgxDropDownComponent })
     public columnSelectionDropdown: IgxDropDownComponent;
 
-    @ViewChild('columnSelectionButton', { read: IgxButtonDirective })
-    public columnSelectionButton: IgxButtonDirective;
     public searchSelectedColumn = '';
     public data: Array<any>;
     public columns: Array<any>;
@@ -104,7 +102,7 @@ export class GridColumnSelectionSampleComponent implements OnInit, AfterViewInit
         verticalDirection: VerticalAlignment.Bottom,
         verticalStartPoint: VerticalAlignment.Bottom
     };
-    private _overlaySettings: OverlaySettings = {
+    public _overlaySettings: OverlaySettings = {
         positionStrategy: new ConnectedPositioningStrategy(this._positionSettings),
         scrollStrategy: new AbsoluteScrollStrategy(),
         modal: false,
@@ -156,7 +154,7 @@ export class GridColumnSelectionSampleComponent implements OnInit, AfterViewInit
     }
 
     public selected(event) {
-        const selectedItem = event.newSelection.element.nativeElement.textContent.trim();
+        const selectedItem = event.newSelection.value || event.newSelection.ariaLabel || '';
 
         this.grid1.columnSelection = selectedItem;
         this.grid2.columnSelection = selectedItem;
@@ -171,12 +169,6 @@ export class GridColumnSelectionSampleComponent implements OnInit, AfterViewInit
         this.grid1.getColumnByName('ID').selected = false;
     }
 
-    public toggleColumnSelection() {
-        this._overlaySettings.target = this.columnSelectionButton.nativeElement;
-        this._overlaySettings.excludeFromOutsideClick = [this.columnSelectionButton.nativeElement];
-        this._overlaySettings.outlet = this.grid1.outlet;
-        this.columnSelectionDropdown.toggle(this._overlaySettings);
-    }
 
     public onColumnSelection(event) {
         console.log(event);
