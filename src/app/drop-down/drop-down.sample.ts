@@ -2,7 +2,6 @@ import {
     Component,
     OnInit,
     ViewChild,
-    ElementRef,
     CUSTOM_ELEMENTS_SCHEMA,
     DestroyRef,
 } from '@angular/core';
@@ -89,10 +88,10 @@ export class DropDownSampleComponent implements OnInit {
     private igxDropDown: IgxDropDownComponent;
     @ViewChild('dropdown3', { static: true })
     private igxDropDownSelection: IgxDropDownComponent;
-    @ViewChild('button', { static: true })
-    private button: ElementRef;
     @ViewChild(IgxOverlayOutletDirective, { static: true })
     private igxOverlayOutlet: IgxOverlayOutletDirective;
+
+    public overlaySettings: OverlaySettings;
 
     public items: { field: string, header?: string, disabled?: boolean, selected?: boolean }[] = [];
     public foods = foods;
@@ -175,6 +174,7 @@ export class DropDownSampleComponent implements OnInit {
     public ngOnInit() {
         this.igxDropDown.height = '400px';
         this.igxDropDown.width = '180px';
+        this.updateOverlaySettings();
 
         const states = [
             'New England',
@@ -283,8 +283,11 @@ export class DropDownSampleComponent implements OnInit {
     public onSelectionMenu(eventArgs) {
         eventArgs.cancel = true;
 
-        console.log(`new selection ${eventArgs.newSelection.element.nativeElement.textContent}`);
-        console.log(`old selection ${eventArgs.oldSelection ? eventArgs.oldSelection.element.nativeElement.textContent : ''}`);
+        const newSelectionText = eventArgs.newSelection.value?.field || eventArgs.newSelection.ariaLabel || eventArgs.newSelection.value;
+        const oldSelectionText = eventArgs.oldSelection ? (eventArgs.oldSelection.value?.field || eventArgs.oldSelection.ariaLabel || eventArgs.oldSelection.value) : '';
+
+        console.log(`new selection ${newSelectionText}`);
+        console.log(`old selection ${oldSelectionText}`);
     }
 
     public onOpening() {
@@ -401,17 +404,19 @@ export class DropDownSampleComponent implements OnInit {
         }
     }
 
-    public toggleDropDown() {
-        const overlaySettings: OverlaySettings = {
+    private updateOverlaySettings() {
+        this.overlaySettings = {
             positionStrategy: this.getPositionStrategy(),
             scrollStrategy: this.getScrollStrategy(),
             closeOnOutsideClick: !this.propertyChangeService.getProperty(
                 'keepOpenOnOutsideClick'
             ),
-            outlet: this.igxOverlayOutlet,
-            target: this.button.nativeElement
+            outlet: this.igxOverlayOutlet
         };
+    }
 
-        this.igxDropDown.toggle(overlaySettings);
+    public toggleDropDown() {
+        this.updateOverlaySettings();
+        this.igxDropDown.toggle(this.overlaySettings);
     }
 }

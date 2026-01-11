@@ -3,8 +3,8 @@
         <strong>Angular DropDown</strong>
         <button
             igxButton="contained"
-            #button
-            (click)="toggleDropDown()"
+            [igxToggleAction]="dropdown1"
+            [overlaySettings]="overlaySettings"
             [igxDropDownItemNavigation]="dropdown1"
         >
             Toggle
