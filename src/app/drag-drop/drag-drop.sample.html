@@ -143,23 +143,23 @@
         <h4 class="sample-title">Transitions:</h4>
         <p>Custom settings:</p>
         <div>
-            <input #animationDuration type="number" placeholder="Duration seconds" [style.margin.px]="5" [style.width.px]="150">
-            <input #animationDelay type="number" placeholder="Delay seconds" [style.margin.px]="5" [style.width.px]="150">
-            <input #animationFunction type="string" placeholder="Timing function" [style.margin.px]="5">
+        <input type="number" placeholder="Duration seconds" [(ngModel)]="animationDuration" [style.margin.px]="5" [style.width.px]="150">
+        <input type="number" placeholder="Delay seconds" [(ngModel)]="animationDelay" [style.margin.px]="5" [style.width.px]="150">
+        <input type="string" placeholder="Timing function" [(ngModel)]="animationFunction" [style.margin.px]="5">
         </div>
         <div [style.display]="'flex'">
             <div>
                 <p>Start location:</p>
                 <div>
-                    <input #startX type="number" placeholder="pageX " [style.margin.px]="5" [style.width.px]="100">
-                    <input #startY type="number" placeholder="pageY" [style.margin.px]="5" [style.width.px]="100">
+                    <input type="number" placeholder="pageX " [(ngModel)]="startX" [style.margin.px]="5" [style.width.px]="100">
+                    <input type="number" placeholder="pageY" [(ngModel)]="startY" [style.margin.px]="5" [style.width.px]="100">
                 </div>
             </div>
             <div>
                 <p>End location:</p>
                 <div>
-                    <input #endX type="number" placeholder="pageX " value="500" [style.margin.px]="5" [style.width.px]="100">
-                    <input #endY type="number" placeholder="pageY" value="500" [style.margin.px]="5" [style.width.px]="100">
+                    <input type="number" placeholder="pageX " [(ngModel)]="endX" [style.margin.px]="5" [style.width.px]="100">
+                    <input type="number" placeholder="pageY" [(ngModel)]="endY" [style.margin.px]="5" [style.width.px]="100">
                 </div>
             </div>
         </div>
@@ -283,8 +283,8 @@
                 <div igxDrag
                     [id]="item.name"
                     [ngClass]="{'lightblue' : item.selected, 'white': !item.selected}"
-                    (click)="rowClicked($event)"
-                    (dragStart)="dragStartHandler($event)"
+                    (click)="rowClicked(item)"
+                    (dragStart)="dragStartHandler($event, item)"
                     [ghostTemplate]="customGhost">
                     <span>{{ item.name }}</span>
                 </div>
@@ -359,21 +359,27 @@
                         <igx-icon igxDragHandle class="dialogHandle">control_camera</igx-icon>
                     </div>
                     <p>Drop Area 1</p>
-                    <div igxDrop (dropped)="onItemDropped($event)" style="border-style:solid;height:150px;">
-                        <igx-input-group igxDrag>
-                            <igx-prefix>
-                                <igx-icon>person</igx-icon>
-                            </igx-prefix>
-                            <input type="text" igxInput />
-                            <label igxLabel>Username</label>
-                        </igx-input-group>
-                        <igx-input-group igxDrag>
-                            <igx-prefix>
-                                <igx-icon>lock</igx-icon>
-                            </igx-prefix>
-                            <label igxLabel>Password</label>
-                            <input type="password" igxInput />
-                        </igx-input-group>
+                    <div igxDrop [igxDrop]="{dropAreaId: 'area1'}" (dropped)="onItemDropped($event)" style="border-style:solid;height:150px;">
+                        @for (item of dropArea1Items; track item.id) {
+                            @if (item.type === 'username') {
+                                <igx-input-group [igxDrag]="{item: item}">
+                                    <igx-prefix>
+                                        <igx-icon>person</igx-icon>
+                                    </igx-prefix>
+                                    <input type="text" igxInput />
+                                    <label igxLabel>Username</label>
+                                </igx-input-group>
+                            }
+                            @if (item.type === 'password') {
+                                <igx-input-group [igxDrag]="{item: item}">
+                                    <igx-prefix>
+                                        <igx-icon>lock</igx-icon>
+                                    </igx-prefix>
+                                    <label igxLabel>Password</label>
+                                    <input type="password" igxInput />
+                                </igx-input-group>
+                            }
+                        }
                     </div>
                 </div>
                 <div class="igx-dialog__window-actions">
@@ -381,8 +387,29 @@
                 </div>
                 <div class="igx-dialog__window-content">
                     <p>Drop Area 2</p>
-                    <div igxDrop id="droppable" style="border-style:solid;height:150px;"
-                        (dropped)="onItemDropped($event)"></div>
+                    <div igxDrop [igxDrop]="{dropAreaId: 'area2'}" style="border-style:solid;height:150px;"
+                        (dropped)="onItemDropped($event)">
+                        @for (item of dropArea2Items; track item.id) {
+                            @if (item.type === 'username') {
+                                <igx-input-group [igxDrag]="{item: item}">
+                                    <igx-prefix>
+                                        <igx-icon>person</igx-icon>
+                                    </igx-prefix>
+                                    <input type="text" igxInput />
+                                    <label igxLabel>Username</label>
+                                </igx-input-group>
+                            }
+                            @if (item.type === 'password') {
+                                <igx-input-group [igxDrag]="{item: item}">
+                                    <igx-prefix>
+                                        <igx-icon>lock</igx-icon>
+                                    </igx-prefix>
+                                    <label igxLabel>Password</label>
+                                    <input type="password" igxInput />
+                                </igx-input-group>
+                            }
+                        }
+                    </div>
                 </div>
             </div>
         </div>

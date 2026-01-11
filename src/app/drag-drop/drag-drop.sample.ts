@@ -1,5 +1,6 @@
-import { ChangeDetectorRef, Component, ViewChild, ElementRef, ViewChildren, QueryList } from '@angular/core';
+import { ChangeDetectorRef, Component, ViewChild, ViewChildren, QueryList } from '@angular/core';
 import { NgClass, NgStyle } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 import { ShadowGridSampleComponent } from './shadow-dom-grid/shadow-grid-sample';
 import { DragDirection, GlobalPositionStrategy, IDragBaseEventArgs, IDragStartEventArgs, IDropDroppedEventArgs, IgxButtonDirective, IgxDragDirective, IgxDragHandleDirective, IgxDragIgnoreDirective, IgxDragLocation, IgxDropDirective, IgxIconComponent, IgxInputDirective, IgxInputGroupComponent, IgxInsertDropStrategy, IgxLabelDirective, IgxPrefixDirective, IgxRippleDirective, IgxToggleDirective, NoOpScrollStrategy, OverlaySettings } from 'igniteui-angular';
@@ -9,7 +10,7 @@ import { DragDirection, GlobalPositionStrategy, IDragBaseEventArgs, IDragStartEv
     templateUrl: './drag-drop.sample.html',
     styleUrls: ['drag-drop.sample.scss'],
     imports: [
-        NgStyle, NgClass,
+        NgStyle, NgClass, FormsModule,
         IgxDragDirective, IgxDragIgnoreDirective, IgxDragHandleDirective, IgxDropDirective,
         IgxIconComponent, IgxButtonDirective, IgxRippleDirective, IgxToggleDirective,
         IgxInputGroupComponent, IgxPrefixDirective, IgxInputDirective, IgxLabelDirective,
@@ -26,26 +27,13 @@ export class DragDropSampleComponent {
     @ViewChild('dragGhostAnimHost', { read: IgxDragDirective, static: true })
     public dragGhostAnimHost: IgxDragDirective;
 
-    @ViewChild('animationDuration')
-    public animationDuration: ElementRef;
-
-    @ViewChild('animationDelay')
-    public animationDelay: ElementRef;
-
-    @ViewChild('animationFunction')
-    public animationFunction: ElementRef;
-
-    @ViewChild('startX', { static: true })
-    public startX: ElementRef;
-
-    @ViewChild('startY', { static: true })
-    public startY: ElementRef;
-
-    @ViewChild('endX', { static: true })
-    public endX: ElementRef;
-
-    @ViewChild('endY', { static: true })
-    public endY: ElementRef;
+    public animationDuration: number | string = '';
+    public animationDelay: number | string = '';
+    public animationFunction: string = '';
+    public startX: number | string = '';
+    public startY: number | string = '';
+    public endX: number | string = 500;
+    public endY: number | string = 500;
 
     @ViewChild('toggleForm', { static: true })
     public toggleForm: IgxToggleDirective;
@@ -209,31 +197,31 @@ export class DragDropSampleComponent {
     }
 
     public toOriginNoGhost() {
-        const startX = this.startX.nativeElement.value;
-        const startY = this.startY.nativeElement.value;
-        const startLocation: IgxDragLocation = startX && startY ? new IgxDragLocation(startX, startY) : null ;
+        const startX = this.startX;
+        const startY = this.startY;
+        const startLocation: IgxDragLocation = startX && startY ? new IgxDragLocation(Number(startX), Number(startY)) : null ;
         this.dragNoGhostAnim.transitionToOrigin({
-            duration: this.animationDuration.nativeElement.value,
-            timingFunction: this.animationFunction.nativeElement.value,
-            delay: this.animationDelay.nativeElement.value
+            duration: Number(this.animationDuration) || undefined,
+            timingFunction: this.animationFunction || undefined,
+            delay: Number(this.animationDelay) || undefined
         }, startLocation);
     }
 
     public toLocationNoGhost() {
-        const startX = this.startX.nativeElement.value;
-        const startY = this.startY.nativeElement.value;
-        const startLocation: IgxDragLocation = startX && startY ? new IgxDragLocation(startX, startY) : null ;
+        const startX = this.startX;
+        const startY = this.startY;
+        const startLocation: IgxDragLocation = startX && startY ? new IgxDragLocation(Number(startX), Number(startY)) : null ;
 
-        const endX = this.endX.nativeElement.value;
-        const endY = this.endY.nativeElement.value;
-        const endLocation: IgxDragLocation = endX && endY ? new IgxDragLocation(endX, endY) : null;
+        const endX = this.endX;
+        const endY = this.endY;
+        const endLocation: IgxDragLocation = endX && endY ? new IgxDragLocation(Number(endX), Number(endY)) : null;
 
         this.dragNoGhostAnim.transitionTo(
             endLocation,
             {
-                duration: this.animationDuration.nativeElement.value,
-                timingFunction: this.animationFunction.nativeElement.value,
-                delay: this.animationDelay.nativeElement.value
+                duration: Number(this.animationDuration) || undefined,
+                timingFunction: this.animationFunction || undefined,
+                delay: Number(this.animationDelay) || undefined
             },
              startLocation
         );
@@ -241,9 +229,9 @@ export class DragDropSampleComponent {
 
     public dragGhostAnimOrigin(event) {
         event.owner.transitionToOrigin({
-            duration: this.animationDuration.nativeElement.value,
-            timingFunction: this.animationFunction.nativeElement.value,
-            delay: this.animationDelay.nativeElement.value
+            duration: Number(this.animationDuration) || undefined,
+            timingFunction: this.animationFunction || undefined,
+            delay: Number(this.animationDelay) || undefined
         });
     }
 
@@ -268,31 +256,31 @@ export class DragDropSampleComponent {
     }
 
     public toOriginGhostImpl(dragElem: IgxDragDirective) {
-        const startX = this.startX.nativeElement.value;
-        const startY = this.startY.nativeElement.value;
-        const startLocation: IgxDragLocation = startX && startY ? new IgxDragLocation(startX, startY) : null ;
+        const startX = this.startX;
+        const startY = this.startY;
+        const startLocation: IgxDragLocation = startX && startY ? new IgxDragLocation(Number(startX), Number(startY)) : null ;
         dragElem.transitionToOrigin({
-            duration: this.animationDuration.nativeElement.value,
-            timingFunction: this.animationFunction.nativeElement.value,
-            delay: this.animationDelay.nativeElement.value
+            duration: Number(this.animationDuration) || undefined,
+            timingFunction: this.animationFunction || undefined,
+            delay: Number(this.animationDelay) || undefined
         }, startLocation);
     }
 
     public toLocationGhostImpl(dragElem: IgxDragDirective) {
-        const startX = this.startX.nativeElement.value;
-        const startY = this.startY.nativeElement.value;
-        const startLocation: IgxDragLocation = startX && startY ? new IgxDragLocation(startX, startY) : null ;
+        const startX = this.startX;
+        const startY = this.startY;
+        const startLocation: IgxDragLocation = startX && startY ? new IgxDragLocation(Number(startX), Number(startY)) : null ;
 
-        const endX = this.endX.nativeElement.value;
-        const endY = this.endY.nativeElement.value;
-        const endLocation: IgxDragLocation = endX && endY ? new IgxDragLocation(endX, endY) : null;
+        const endX = this.endX;
+        const endY = this.endY;
+        const endLocation: IgxDragLocation = endX && endY ? new IgxDragLocation(Number(endX), Number(endY)) : null;
 
         dragElem.transitionTo(
             endLocation,
             {
-                duration: this.animationDuration.nativeElement.value,
-                timingFunction: this.animationFunction.nativeElement.value,
-                delay: this.animationDelay.nativeElement.value
+                duration: Number(this.animationDuration) || undefined,
+                timingFunction: this.animationFunction || undefined,
+                delay: Number(this.animationDelay) || undefined
             },
              startLocation
         );
@@ -314,9 +302,9 @@ export class DragDropSampleComponent {
             event.owner.transitionTo(new IgxDragLocation(
                 originLocation.pageX,
                 originLocation.pageY + prefix * Math.abs(this.newDraggedIndex - this.draggedIndex) * 68
-            ), { duration: this.animationDuration.nativeElement.value });
+            ), { duration: Number(this.animationDuration) || undefined });
         } else {
-            event.owner.transitionToOrigin({ duration: this.animationDuration.nativeElement.value });
+            event.owner.transitionToOrigin({ duration: Number(this.animationDuration) || undefined });
         }
     }
 
@@ -330,6 +318,18 @@ export class DragDropSampleComponent {
         item.dragged = false;
     }
 
+    private getItemHeight(itemIndex: number, listNotesDirsArray: IgxDragDirective[]): number {
+        if (itemIndex < 0 || itemIndex >= listNotesDirsArray.length - 1) {
+            return 68;
+        }
+        const currentItem = listNotesDirsArray[itemIndex];
+        const nextItem = listNotesDirsArray[itemIndex + 1];
+        const currentLocation = currentItem.originLocation;
+        const nextLocation = nextItem.originLocation;
+        const height = Math.abs(nextLocation.pageY - currentLocation.pageY);
+        return height || 68;
+    }
+
     public listItemEnter(_event, itemIndex) {
         const moveDown = this.draggedIndex < itemIndex;
         const listNotesDirsArray = this.listNotesDirs.toArray();
@@ -339,9 +339,9 @@ export class DragDropSampleComponent {
             itemsToMove.forEach((item, index) => {
                 if (!item.data.moved) {
                     const currentLocation = item.location;
-                    const previousItemHeight = listNotesDirsArray[this.draggedIndex + index].element.nativeElement.offsetHeight;
+                    const previousItemHeight = this.getItemHeight(this.draggedIndex + index, listNotesDirsArray);
                     item.transitionTo(new IgxDragLocation(currentLocation.pageX, currentLocation.pageY - previousItemHeight),
-                        { duration: this.animationDuration.nativeElement.value });
+                        { duration: Number(this.animationDuration) || undefined });
                     item.data.moved = true;
                 }
             });
@@ -349,7 +349,7 @@ export class DragDropSampleComponent {
             const itemsAbove = listNotesDirsArray.slice(0, this.draggedIndex);
             itemsAbove.forEach((item) => {
                 if (item.data.moved) {
-                    item.transitionToOrigin({ duration: this.animationDuration.nativeElement.value });
+                    item.transitionToOrigin({ duration: Number(this.animationDuration) || undefined });
                     item.data.moved = false;
                 }
             });
@@ -357,7 +357,7 @@ export class DragDropSampleComponent {
             const restBellow = listNotesDirsArray.slice(itemIndex);
             restBellow.forEach((item) => {
                 if (item.data.moved) {
-                    item.transitionToOrigin({ duration: this.animationDuration.nativeElement.value });
+                    item.transitionToOrigin({ duration: Number(this.animationDuration) || undefined });
                     item.data.moved = false;
                 }
             });
@@ -366,9 +366,9 @@ export class DragDropSampleComponent {
             itemsToMove.forEach((item, index) => {
                 if (!item.data.moved) {
                     const currentLocation = item.location;
-                    const previousItemHeight = listNotesDirsArray[itemIndex + index].element.nativeElement.offsetHeight;
+                    const previousItemHeight = this.getItemHeight(itemIndex + index, listNotesDirsArray);
                     item.transitionTo(new IgxDragLocation(currentLocation.pageX, currentLocation.pageY + previousItemHeight),
-                        { duration: this.animationDuration.nativeElement.value });
+                        { duration: Number(this.animationDuration) || undefined });
                     item.data.moved = true;
                 }
             });
@@ -376,7 +376,7 @@ export class DragDropSampleComponent {
             const itemsBelow = listNotesDirsArray.slice(this.draggedIndex + 1);
             itemsBelow.forEach((item) => {
                 if (item.data.moved) {
-                    item.transitionToOrigin({ duration: this.animationDuration.nativeElement.value });
+                    item.transitionToOrigin({ duration: Number(this.animationDuration) || undefined });
                     item.data.moved = false;
                 }
             });
@@ -384,7 +384,7 @@ export class DragDropSampleComponent {
             const restAbove = listNotesDirsArray.slice(0, itemIndex + 1);
             restAbove.forEach((item) => {
                 if (item.data.moved) {
-                    item.transitionToOrigin({ duration: this.animationDuration.nativeElement.value });
+                    item.transitionToOrigin({ duration: Number(this.animationDuration) || undefined });
                     item.data.moved = false;
                 }
             });
@@ -394,6 +394,7 @@ export class DragDropSampleComponent {
     public listItemOver(_event, itemIndex) {
         const moveDown = itemIndex > this.draggedIndex;
         const itemDragDir = this.listNotesDirs.toArray()[itemIndex];
+        const listNotesDirsArray = this.listNotesDirs.toArray();
 
         if (itemDragDir.animInProgress) {
             return;
@@ -401,17 +402,19 @@ export class DragDropSampleComponent {
 
         if (itemDragDir.data.moved) {
             itemDragDir.data.moved = false;
-            itemDragDir.transitionToOrigin({ duration: this.animationDuration.nativeElement.value });
+            itemDragDir.transitionToOrigin({ duration: Number(this.animationDuration) || undefined });
         } else {
             const currentLocation = itemDragDir.location;
             let nextLocation;
             if (moveDown) {
-                nextLocation = -1 * this.listNotesDirs.toArray()[itemIndex - 1].element.nativeElement.offsetHeight;
+                const prevItemHeight = this.getItemHeight(itemIndex - 1, listNotesDirsArray);
+                nextLocation = -1 * prevItemHeight;
             } else {
-                nextLocation = this.listNotesDirs.toArray()[itemIndex + 1].element.nativeElement.offsetHeight;
+                const nextItemHeight = this.getItemHeight(itemIndex, listNotesDirsArray);
+                nextLocation = nextItemHeight;
             }
             itemDragDir.transitionTo(new IgxDragLocation(currentLocation.pageX, currentLocation.pageY + nextLocation),
-                { duration: this.animationDuration.nativeElement.value });
+                { duration: Number(this.animationDuration) || undefined });
             itemDragDir.data.moved = true;
         }
     }
@@ -439,11 +442,34 @@ export class DragDropSampleComponent {
         this.toggleForm.setOffset(deltaX, deltaY);
       }
 
+    public dropArea1Items: Array<{type: 'username' | 'password', id: string}> = [
+        { type: 'username', id: 'username-1' },
+        { type: 'password', id: 'password-1' }
+    ];
+    public dropArea2Items: Array<{type: 'username' | 'password', id: string}> = [];
+
     public onItemDropped(event: IDropDroppedEventArgs) {
-      const dropDivArea: HTMLElement = event.owner.element.nativeElement;
-      const draggedEl = event.drag.element.nativeElement;
-      dropDivArea.appendChild(draggedEl);
-      event.cancel = true;
+        const draggedItem = event.drag.data?.item;
+        if (draggedItem) {
+            const dropAreaId = event.owner.data?.dropAreaId;
+            const isFromArea1 = this.dropArea1Items.some(item => item.id === draggedItem.id);
+            const isFromArea2 = this.dropArea2Items.some(item => item.id === draggedItem.id);
+            
+            if (dropAreaId === 'area2' && isFromArea1) {
+                const index = this.dropArea1Items.findIndex(item => item.id === draggedItem.id);
+                if (index >= 0) {
+                    const item = this.dropArea1Items.splice(index, 1)[0];
+                    this.dropArea2Items.push(item);
+                }
+            } else if (dropAreaId === 'area1' && isFromArea2) {
+                const index = this.dropArea2Items.findIndex(item => item.id === draggedItem.id);
+                if (index >= 0) {
+                    const item = this.dropArea2Items.splice(index, 1)[0];
+                    this.dropArea1Items.push(item);
+                }
+            }
+        }
+        event.cancel = true;
     }
 
     public getCategoryMovies(inCategory: string){
@@ -452,23 +478,21 @@ export class DragDropSampleComponent {
 
 
     // Multi selection row drag
-    public rowClicked(event: MouseEvent): void {
-        const target = event.target as Element;
-        const clickedCardId = target?.id;
-        const index = this.sourceRows.findIndex((item) => item.name === clickedCardId);
+    public rowClicked(item: any): void {
+        const index = this.sourceRows.findIndex((row) => row.name === item.name);
         if(index < 0) return;
         this.sourceRows[index].selected = !this.sourceRows[index].selected;
     }
 
-    public dragStartHandler(event: IDragStartEventArgs) {
-        const dragItemId = event.owner.element.nativeElement.id;
+    public dragStartHandler(_event: IDragStartEventArgs, item: any) {
+        const dragItemId = item?.name;
         if(dragItemId !== undefined){
-          const index = this.sourceRows.findIndex((item) => item.name === dragItemId);
+          const index = this.sourceRows.findIndex((row) => row.name === dragItemId);
           if(index >= 0) this.sourceRows[index].selected = true;
         }
 
-        this.selectedRows = this.sourceRows.filter(item => item.selected).map((item) => {
-            return {name: item.name, selected: false}
+        this.selectedRows = this.sourceRows.filter(row => row.selected).map((row) => {
+            return {name: row.name, selected: false}
         });
     }
 
