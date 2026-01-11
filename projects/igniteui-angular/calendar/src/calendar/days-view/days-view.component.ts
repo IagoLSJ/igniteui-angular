@@ -19,6 +19,7 @@ import { NG_VALUE_ACCESSOR } from '@angular/forms';
 import { TitleCasePipe } from '@angular/common';
 import { CalendarSelection, ScrollDirection } from '../../calendar/calendar';
 import { IgxDayItemComponent } from './day-item.component';
+import { IDayItemConfig } from './day-item.config';
 import {
     CalendarDay,
     DateRangeType,
@@ -37,6 +38,7 @@ import {
 import { IgxCalendarBaseDirective } from '../calendar-base';
 import { IViewChangingEventArgs } from './days-view.interface';
 import { KeyboardNavigationService } from '../calendar.services';
+import { IDaysViewConfig } from './days-view.config';
 
 let NEXT_ID = 0;
 
@@ -85,16 +87,6 @@ export class IgxDaysViewComponent extends IgxCalendarBaseDirective implements Af
 	@HostBinding('class.igx-days-view')
 	public readonly viewClass = true;
 
-    @Input()
-	@HostBinding('class.igx-days-view--standalone')
-	public get standalone() {
-        return this.#standalone;
-    }
-
-	public set standalone(value: boolean) {
-        this.#standalone = value;
-    }
-
     @HostBinding('attr.aria-activeDescendant')
     protected get activeDescendant() {
         if (this.tabIndex === -1) return;
@@ -103,15 +95,73 @@ export class IgxDaysViewComponent extends IgxCalendarBaseDirective implements Af
     }
 
     /**
-     * Show/hide week numbers
-     *
+     * Configuration object for days view component
+     * 
      * @example
      * ```html
-     * <igx-days-view [showWeekNumbers]="true"></igx-days-view>
-     * ``
+     * <igx-days-view [config]="{ showWeekNumbers: true, standalone: false }"></igx-days-view>
+     * ```
      */
-    @Input({ transform: booleanAttribute })
-    public showWeekNumbers: boolean;
+    @Input()
+    public set config(value: IDaysViewConfig) {
+        if (value) {
+            this._config = { ...value };
+            if (value.standalone !== undefined) {
+                this.#standalone = value.standalone;
+            }
+            if (value.showWeekNumbers !== undefined) {
+                this._showWeekNumbers = value.showWeekNumbers;
+            }
+            if (value.hideLeadingDays !== undefined) {
+                this._hideLeadingDays = value.hideLeadingDays;
+                this.cdr.detectChanges();
+            }
+            if (value.hideTrailingDays !== undefined) {
+                this._hideTrailingDays = value.hideTrailingDays;
+                this.cdr.detectChanges();
+            }
+            if (value.showActiveDay !== undefined) {
+                this._showActiveDay = value.showActiveDay;
+            }
+        }
+    }
+
+    public get config(): Readonly<IDaysViewConfig> {
+        return this._config;
+    }
+
+    @HostBinding('class.igx-days-view--standalone')
+    public get standalone(): boolean {
+        return this.#standalone ?? this._config?.standalone ?? true;
+    }
+
+    /**
+     * @hidden
+     * @internal
+     */
+    public set standalone(value: boolean) {
+        this.#standalone = value;
+        if (!this._config) {
+            this._config = {};
+        }
+        this._config.standalone = value;
+    }
+
+    public get showWeekNumbers(): boolean {
+        return this._showWeekNumbers ?? this._config?.showWeekNumbers ?? false;
+    }
+
+    /**
+     * @hidden
+     * @internal
+     */
+    public set showWeekNumbers(value: boolean) {
+        this._showWeekNumbers = value;
+        if (!this._config) {
+            this._config = {};
+        }
+        this._config.showWeekNumbers = value;
+    }
 
     /**
      * @hidden
@@ -142,33 +192,54 @@ export class IgxDaysViewComponent extends IgxCalendarBaseDirective implements Af
         return this._previewRangeDate;
     }
 
-    @Input({ transform: booleanAttribute })
+    /**
+     * @hidden
+     * @internal
+     */
     public set hideLeadingDays(value: boolean) {
         this._hideLeadingDays = value;
+        if (!this._config) {
+            this._config = {};
+        }
+        this._config.hideLeadingDays = value;
         this.cdr.detectChanges();
     }
 
-    public get hideLeadingDays() {
-        return this._hideLeadingDays ?? this.hideOutsideDays;
+    public get hideLeadingDays(): boolean {
+        return this._hideLeadingDays ?? this._config?.hideLeadingDays ?? this.hideOutsideDays;
     }
 
-    @Input({ transform: booleanAttribute })
+    /**
+     * @hidden
+     * @internal
+     */
     public set hideTrailingDays(value: boolean) {
         this._hideTrailingDays = value;
+        if (!this._config) {
+            this._config = {};
+        }
+        this._config.hideTrailingDays = value;
         this.cdr.detectChanges();
     }
 
-    public get hideTrailingDays() {
-        return this._hideTrailingDays ?? this.hideOutsideDays;
+    public get hideTrailingDays(): boolean {
+        return this._hideTrailingDays ?? this._config?.hideTrailingDays ?? this.hideOutsideDays;
     }
 
-    @Input({ transform: booleanAttribute })
+    /**
+     * @hidden
+     * @internal
+     */
     public set showActiveDay(value: boolean) {
         this._showActiveDay = value;
+        if (!this._config) {
+            this._config = {};
+        }
+        this._config.showActiveDay = value;
     }
 
-    public get showActiveDay() {
-        return this._showActiveDay;
+    public get showActiveDay(): boolean {
+        return this._showActiveDay ?? this._config?.showActiveDay ?? false;
     }
 
     /**
@@ -206,6 +277,8 @@ export class IgxDaysViewComponent extends IgxCalendarBaseDirective implements Af
     private _hideLeadingDays: boolean;
     private _hideTrailingDays: boolean;
     private _showActiveDay: boolean;
+    private _showWeekNumbers: boolean;
+    private _config: IDaysViewConfig = {};
 
     private _destroyRef = inject(DestroyRef);
     private _theme: IgxTheme;
@@ -372,6 +445,10 @@ export class IgxDaysViewComponent extends IgxCalendarBaseDirective implements Af
      */
     @HostListener('focus')
     protected handleFocus() {
+        if (!this._config) {
+            this._config = {};
+        }
+        this._config.showActiveDay = true;
         this._showActiveDay = true;
         this.changePreviewRange(this.activeDate);
     }
@@ -381,6 +458,10 @@ export class IgxDaysViewComponent extends IgxCalendarBaseDirective implements Af
      */
     @HostListener('blur')
     protected handleBlur() {
+        if (!this._config) {
+            this._config = {};
+        }
+        this._config.showActiveDay = false;
         this._showActiveDay = false;
         this.clearPreviewRange();
     }
@@ -655,5 +736,23 @@ export class IgxDaysViewComponent extends IgxCalendarBaseDirective implements Af
 
     private setPreviewRangeDate(value?: Date) {
         this.previewRangeDate = value;
+    }
+
+    protected getDayItemConfig(day: CalendarDay): IDayItemConfig {
+        return {
+            disabledDates: this.disabledDates,
+            specialDates: this.specialDates,
+            hideLeadingDays: this.hideLeadingDays,
+            hideTrailingDays: this.hideTrailingDays,
+            isLastInRange: this.isLastInRange(day),
+            isFirstInRange: this.isFirstInRange(day),
+            isWithinRange: this.isWithinRange(day.native, true),
+            isWithinPreviewRange: this.isWithinPreviewRange(day.native),
+            isActive: this.isActiveDate(day)
+        };
+    }
+
+    protected get selectionAsCalendarSelection(): CalendarSelection {
+        return this.selection as CalendarSelection;
     }
 }

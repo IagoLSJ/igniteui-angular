@@ -26,6 +26,7 @@ import { IgxCalendarView, ScrollDirection } from './calendar';
 import { IgxMonthsViewComponent } from './months-view/months-view.component';
 import { IgxYearsViewComponent } from './years-view/years-view.component';
 import { IgxDaysViewComponent } from './days-view/days-view.component';
+import { IDaysViewConfig } from './days-view/days-view.config';
 import { interval } from 'rxjs';
 import { takeUntil, debounce, skipLast, switchMap } from 'rxjs/operators';
 import { IgxMonthViewSlotsCalendar, IgxGetViewDateCalendar } from './months-view.pipe';
@@ -908,10 +909,24 @@ export class IgxCalendarComponent extends IgxCalendarBaseDirective implements Af
 	 * @hidden
 	 * @internal
 	 */
-    protected get viewDates() {
+	protected get viewDates() {
         return this.monthViews.toArray()
             .flatMap(view => view.dates.toArray())
             .filter(d => d.isCurrentMonth);
+    }
+
+    /**
+     * @hidden
+     * @internal
+     */
+    public getDaysViewConfig(index: number): IDaysViewConfig {
+        return {
+            standalone: false,
+            showWeekNumbers: this.showWeekNumbers,
+            hideLeadingDays: this.hideOutsideDays || index !== 0,
+            hideTrailingDays: this.hideOutsideDays || index !== this.monthsViewNumber - 1,
+            showActiveDay: this.showActiveDay
+        };
     }
 
 	/**
