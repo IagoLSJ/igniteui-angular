@@ -4,6 +4,9 @@ import { IgxSlideComponent } from './slide.component';
 
 export { CarouselAnimationDirection, IgxCarouselComponentBase, IgxSlideComponentBase, CarouselAnimationSettings } from './carousel-base';
 export * from './carousel.component';
+export * from './carousel.config';
+export * from './carousel.types';
+export * from './carousel.helpers';
 export * from './slide.component';
 export * from './carousel.directives';
 export { CarouselAnimationType, CarouselIndicatorsOrientation } from './enums';
