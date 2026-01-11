@@ -2,42 +2,44 @@ import { Injectable } from '@angular/core';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
+import { Product } from './models/product';
+import { ODataResponse } from './models/oDataResponse';
+import { DataState } from './types/data-state.type';
 
 @Injectable()
 export class RemoteService {
-    public remotePagingData: BehaviorSubject<any[]>;
+    public remotePagingData: BehaviorSubject<Product[]>;
     public urlPaging = 'https://www.igniteui.com/api/products';
     public totalCount: Observable<number>;
-    public remoteData: Observable<any[]>;
+    public remoteData: Observable<Product[]>;
     public url = `https://services.odata.org/V4/Northwind/Northwind.svc/Products`;
-    public urlBuilder;
+    public urlBuilder: (dataState?: DataState) => string;
 
-    private _remoteData: BehaviorSubject<any[]>;
+    private _remoteData: BehaviorSubject<Product[]>;
     private _totalCount: BehaviorSubject<number>;
 
     constructor(private http: HttpClient) {
-        this._remoteData = new BehaviorSubject([]);
+        this._remoteData = new BehaviorSubject<Product[]>([]);
         this.remoteData = this._remoteData.asObservable();
-        this._totalCount = new BehaviorSubject(null);
+        this._totalCount = new BehaviorSubject<number | null>(null);
         this.totalCount = this._totalCount.asObservable();
-        this.remotePagingData = new BehaviorSubject([]);
+        this.remotePagingData = new BehaviorSubject<Product[]>([]);
     }
 
     public nullData() {
-        this._remoteData.next(null);
+        this._remoteData.next(null as unknown as Product[]);
     }
 
     public undefinedData() {
-        this._remoteData.next(undefined);
+        this._remoteData.next(undefined as unknown as Product[]);
     }
 
-    public getData(data?: any, cb?: (any) => void) {
-        const dataState = data;
-        return this.http.get(this.buildUrl(dataState)).pipe(
+    public getData(data?: DataState, cb?: (data: ODataResponse<Product>) => void) {
+        return this.http.get<ODataResponse<Product>>(this.buildUrl(data)).pipe(
             map(response => response),
         )
         .subscribe(d => {
-            this._remoteData.next(d['value']);
+            this._remoteData.next(d.value);
             this._totalCount.next(d['@odata.count']);
             if (cb) {
                 cb(d);
@@ -45,12 +47,12 @@ export class RemoteService {
         });
     }
 
-    public getOrdersData(url: string, data?: any, cb?: (any) => void) {
-        return this.http.get(url).pipe(
+    public getOrdersData(url: string, _data?: DataState, cb?: (data: ODataResponse<Product>) => void) {
+        return this.http.get<ODataResponse<Product>>(url).pipe(
             map(response => response),
         )
         .subscribe(d => {
-            this._remoteData.next(d['value']);
+            this._remoteData.next(d.value);
             this._totalCount.next(d['@odata.count']);
             if (cb) {
                 cb(d);
@@ -58,12 +60,11 @@ export class RemoteService {
         });
     }
 
-    public buildUrl(dataState: any) {
+    public buildUrl(dataState?: DataState): string {
         return this.urlBuilder(dataState);
     }
 
-    // Remote paging
-    public getPagingData(index?: number, perPage?: number): any {
+    public getPagingData(index?: number, perPage?: number): void {
         let qS = '';
 
         if (perPage) {
@@ -71,14 +72,14 @@ export class RemoteService {
         }
 
         this.http
-            .get(`${this.urlPaging + qS}`).pipe(
-                map((data: any) => data)
+            .get<Product[]>(`${this.urlPaging + qS}`).pipe(
+                map((data: Product[]) => data)
             ).subscribe((data) => this.remotePagingData.next(data));
     }
 
-    public getPagingDataLength(): any {
-        return this.http.get(this.urlPaging).pipe(
-            map((data: any) => data.length)
+    public getPagingDataLength(): Observable<number> {
+        return this.http.get<Product[]>(this.urlPaging).pipe(
+            map((data: Product[]) => data.length)
         );
     }
 }
