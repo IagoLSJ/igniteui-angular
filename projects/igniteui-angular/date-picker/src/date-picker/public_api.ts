@@ -7,6 +7,7 @@ export * from './date-picker.common';
 export * from './date-picker.component';
 export * from './calendar-container/calendar-container.component';
 export * from './picker-base.directive';
+export * from './date-picker.config';
 
 /* NOTE: Date picker directives collection for ease-of-use import in standalone components scenario */
 export const IGX_DATE_PICKER_DIRECTIVES = [

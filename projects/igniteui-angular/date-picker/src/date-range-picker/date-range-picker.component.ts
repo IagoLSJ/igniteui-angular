@@ -56,6 +56,12 @@ import {
 } from './date-range-picker-inputs.common';
 import { IgxIconComponent } from 'igniteui-angular/icon';
 import { fadeIn, fadeOut } from 'igniteui-angular/animations';
+import {
+    IDateRangePickerCalendarConfig,
+    IDateRangePickerButtonConfig,
+    IDateRangePickerRangeConfig,
+    IDateRangePickerValidationConfig
+} from './date-range-picker.config';
 
 const SingleInputDatesConcatenationString = ' - ';
 
@@ -108,47 +114,100 @@ export class IgxDateRangePickerComponent extends PickerBaseDirective
 
 
     /**
-     * The number of displayed month views.
-     *
-     * @remarks
-     * Default is `2`.
+     * Configuration object for calendar display settings.
      *
      * @example
      * ```html
-     * <igx-date-range-picker [displayMonthsCount]="3"></igx-date-range-picker>
+     * <igx-date-range-picker [calendarConfig]="{ displayMonthsCount: 2, orientation: 'horizontal', hideOutsideDays: false }"></igx-date-range-picker>
      * ```
      */
     @Input()
+    public set calendarConfig(value: IDateRangePickerCalendarConfig) {
+        if (value) {
+            if (value.displayMonthsCount !== undefined) {
+                this._displayMonthsCount = clamp(value.displayMonthsCount, 1, 2);
+            }
+            if (value.orientation !== undefined) {
+                this._orientation = value.orientation;
+            }
+            if (value.hideOutsideDays !== undefined) {
+                this._hideOutsideDays = value.hideOutsideDays;
+            }
+            if (value.showWeekNumbers !== undefined) {
+                this._showWeekNumbers = value.showWeekNumbers;
+            }
+            if (value.specialDates !== undefined) {
+                this._specialDates = value.specialDates;
+            }
+            if (value.disabledDates !== undefined) {
+                this._disabledDates = value.disabledDates;
+                this.onValidatorChange();
+            }
+            if (value.activeDate !== undefined) {
+                this._activeDate = value.activeDate;
+            }
+        }
+    }
+
+    public get calendarConfig(): IDateRangePickerCalendarConfig {
+        return {
+            displayMonthsCount: this._displayMonthsCount,
+            orientation: this._orientation,
+            hideOutsideDays: this._hideOutsideDays,
+            showWeekNumbers: this._showWeekNumbers,
+            specialDates: this._specialDates,
+            disabledDates: this._disabledDates,
+            activeDate: this._activeDate
+        };
+    }
+
+    /**
+     * @hidden @internal
+     * Backward compatibility getter for displayMonthsCount
+     */
     public get displayMonthsCount(): number {
         return this._displayMonthsCount;
     }
 
+    /**
+     * @hidden @internal
+     * Backward compatibility setter for displayMonthsCount
+     */
     public set displayMonthsCount(value: number) {
         this._displayMonthsCount = clamp(value, 1, 2);
     }
 
     /**
-     * Gets/Sets the orientation of the multiple months displayed in the picker's calendar's days view.
-     *
-     * @example
-     * <igx-date-range-picker orientation="vertical"></igx-date-range-picker>
+     * @hidden @internal
+     * Backward compatibility getter for orientation
      */
-    @Input()
-    public orientation: PickerCalendarOrientation = PickerCalendarOrientation.Horizontal;
+    public get orientation(): PickerCalendarOrientation {
+        return this._orientation;
+    }
 
     /**
-     * Gets/Sets whether dates that are not part of the current month will be displayed.
-     *
-     * @remarks
-     * Default value is `false`.
-     *
-     * @example
-     * ```html
-     * <igx-date-range-picker [hideOutsideDays]="true"></igx-date-range-picker>
-     * ```
+     * @hidden @internal
+     * Backward compatibility setter for orientation
      */
-    @Input({ transform: booleanAttribute })
-    public hideOutsideDays: boolean;
+    public set orientation(value: PickerCalendarOrientation) {
+        this._orientation = value;
+    }
+
+    /**
+     * @hidden @internal
+     * Backward compatibility getter for hideOutsideDays
+     */
+    public get hideOutsideDays(): boolean {
+        return this._hideOutsideDays;
+    }
+
+    /**
+     * @hidden @internal
+     * Backward compatibility setter for hideOutsideDays
+     */
+    public set hideOutsideDays(value: boolean) {
+        this._hideOutsideDays = value;
+    }
 
     /**
      * A custom formatter function, applied on the selected or passed in date.
@@ -170,45 +229,65 @@ export class IgxDateRangePickerComponent extends PickerBaseDirective
     public formatter: (val: DateRange) => string;
 
     /**
-     * Overrides the default text of the calendar dialog **Done** button.
-     *
-     * @remarks
-     * Defaults to the value from resource strings, `"Done"` for the built-in EN.
-     * The button will only show up in `dialog` mode.
+     * Configuration object for dialog buttons.
      *
      * @example
      * ```html
-     * <igx-date-range-picker doneButtonText="完了"></igx-date-range-picker>
+     * <igx-date-range-picker [buttonConfig]="{ doneButtonText: '完了', cancelButtonText: '取消' }"></igx-date-range-picker>
      * ```
+     */
+    @Input()
+    public set buttonConfig(value: IDateRangePickerButtonConfig) {
+        if (value) {
+            if (value.doneButtonText !== undefined) {
+                this._doneButtonText = value.doneButtonText;
+            }
+            if (value.cancelButtonText !== undefined) {
+                this._cancelButtonText = value.cancelButtonText;
+            }
+        }
+    }
+
+    public get buttonConfig(): IDateRangePickerButtonConfig {
+        return {
+            doneButtonText: this._doneButtonText !== null ? this._doneButtonText : undefined,
+            cancelButtonText: this._cancelButtonText !== null ? this._cancelButtonText : undefined
+        };
+    }
+
+    /**
+     * @hidden @internal
+     * Backward compatibility setter for doneButtonText
      */
     @Input()
     public set doneButtonText(value: string) {
         this._doneButtonText = value;
     }
 
+    /**
+     * @hidden @internal
+     * Backward compatibility getter for doneButtonText
+     */
     public get doneButtonText(): string {
         if (this._doneButtonText === null) {
             return this.resourceStrings.igx_date_range_picker_done_button;
         }
         return this._doneButtonText;
     }
+
     /**
-     * Overrides the default text of the calendar dialog **Cancel** button.
-     *
-     * @remarks
-     * Defaults to the value from resource strings, `"Cancel"` for the built-in EN.
-     * The button will only show up in `dialog` mode.
-     *
-     * @example
-     * ```html
-     * <igx-date-range-picker cancelButtonText="取消"></igx-date-range-picker>
-     * ```
+     * @hidden @internal
+     * Backward compatibility setter for cancelButtonText
      */
     @Input()
     public set cancelButtonText(value: string) {
         this._cancelButtonText = value;
     }
 
+    /**
+     * @hidden @internal
+     * Backward compatibility getter for cancelButtonText
+     */
     public get cancelButtonText(): string {
         if (this._cancelButtonText === null) {
             return this.resourceStrings.igx_date_range_picker_cancel_button;
@@ -253,10 +332,37 @@ export class IgxDateRangePickerComponent extends PickerBaseDirective
     public override inputFormat: string;
 
     /**
-     * The minimum value in a valid range.
+     * Configuration object for date validation settings.
      *
      * @example
-     * <igx-date-range-picker [minValue]="minDate"></igx-date-range-picker>
+     * ```html
+     * <igx-date-range-picker [validationConfig]="{ minValue: minDate, maxValue: maxDate }"></igx-date-range-picker>
+     * ```
+     */
+    @Input()
+    public set validationConfig(value: IDateRangePickerValidationConfig) {
+        if (value) {
+            if (value.minValue !== undefined) {
+                this._minValue = value.minValue;
+                this.onValidatorChange();
+            }
+            if (value.maxValue !== undefined) {
+                this._maxValue = value.maxValue;
+                this.onValidatorChange();
+            }
+        }
+    }
+
+    public get validationConfig(): IDateRangePickerValidationConfig {
+        return {
+            minValue: this._minValue,
+            maxValue: this._maxValue
+        };
+    }
+
+    /**
+     * @hidden @internal
+     * Backward compatibility setter for minValue
      */
     @Input()
     public set minValue(value: Date | string) {
@@ -264,15 +370,17 @@ export class IgxDateRangePickerComponent extends PickerBaseDirective
         this.onValidatorChange();
     }
 
+    /**
+     * @hidden @internal
+     * Backward compatibility getter for minValue
+     */
     public get minValue(): Date | string {
         return this._minValue;
     }
 
     /**
-     * The maximum value in a valid range.
-     *
-     * @example
-     * <igx-date-range-picker [maxValue]="maxDate"></igx-date-range-picker>
+     * @hidden @internal
+     * Backward compatibility setter for maxValue
      */
     @Input()
     public set maxValue(value: Date | string) {
@@ -280,41 +388,45 @@ export class IgxDateRangePickerComponent extends PickerBaseDirective
         this.onValidatorChange();
     }
 
+    /**
+     * @hidden @internal
+     * Backward compatibility getter for maxValue
+     */
     public get maxValue(): Date | string {
         return this._maxValue;
     }
 
     /**
-     * Gets/Sets the disabled dates descriptors.
-     *
-     * @example
-     * ```typescript
-     * let disabledDates = this.dateRangePicker.disabledDates;
-     * this.dateRangePicker.disabledDates = [ {type: DateRangeType.Weekends}, ...];
-     * ```
+     * @hidden @internal
+     * Backward compatibility getter for disabledDates
      */
     @Input()
     public get disabledDates(): DateRangeDescriptor[] {
         return this._disabledDates;
     }
+
+    /**
+     * @hidden @internal
+     * Backward compatibility setter for disabledDates
+     */
     public set disabledDates(value: DateRangeDescriptor[]) {
         this._disabledDates = value;
         this.onValidatorChange();
     }
 
     /**
-     * Gets/Sets the special dates descriptors.
-     *
-     * @example
-     * ```typescript
-     * let specialDates = this.dateRangePicker.specialDates;
-     * this.dateRangePicker.specialDates = [ {type: DateRangeType.Weekends}, ... ];
-     * ```
+     * @hidden @internal
+     * Backward compatibility getter for specialDates
      */
     @Input()
     public get specialDates(): DateRangeDescriptor[] {
         return this._specialDates;
     }
+
+    /**
+     * @hidden @internal
+     * Backward compatibility setter for specialDates
+     */
     public set specialDates(value: DateRangeDescriptor[]) {
         this._specialDates = value;
     }
@@ -363,18 +475,17 @@ export class IgxDateRangePickerComponent extends PickerBaseDirective
     public override outlet: IgxOverlayOutletDirective | ElementRef<any>;
 
     /**
-     * Show/hide week numbers
-     *
-     * @remarks
-     * Default is `false`.
-     *
-     * @example
-     * ```html
-     * <igx-date-range-picker [showWeekNumbers]="true"></igx-date-range-picker>
-     * ``
+     * @hidden @internal
+     * Backward compatibility for showWeekNumbers
      */
     @Input({ transform: booleanAttribute })
-    public showWeekNumbers = false;
+    public set showWeekNumbers(value: boolean) {
+        this._showWeekNumbers = value;
+    }
+
+    public get showWeekNumbers(): boolean {
+        return this._showWeekNumbers;
+    }
 
     /** @hidden @internal */
     @Input({ transform: booleanAttribute })
@@ -389,25 +500,58 @@ export class IgxDateRangePickerComponent extends PickerBaseDirective
      * ```
      */
 
-     /**
-      * Whether to render built-in predefined ranges.
-      *
-      * @example
-      * ```html
-      * <igx-date-range-picker [(usePredefinedRanges)]="true"></igx-date-range-picker>
-      * ``
-      *  */
-    @Input() public usePredefinedRanges = false;
-
     /**
-     *  Custom ranges rendered as chips.
+     * Configuration object for predefined and custom ranges.
      *
      * @example
      * ```html
-     * <igx-date-range-picker [(usePredefinedRanges)]="true"></igx-date-range-picker>
-     * ``
-    */
-    @Input() public customRanges: CustomDateRange[] = [];
+     * <igx-date-range-picker [rangeConfig]="{ usePredefinedRanges: true, customRanges: customRanges }"></igx-date-range-picker>
+     * ```
+     */
+    @Input()
+    public set rangeConfig(value: IDateRangePickerRangeConfig) {
+        if (value) {
+            if (value.usePredefinedRanges !== undefined) {
+                this._usePredefinedRanges = value.usePredefinedRanges;
+            }
+            if (value.customRanges !== undefined) {
+                this._customRanges = value.customRanges;
+            }
+        }
+    }
+
+    public get rangeConfig(): IDateRangePickerRangeConfig {
+        return {
+            usePredefinedRanges: this._usePredefinedRanges,
+            customRanges: this._customRanges
+        };
+    }
+
+    /**
+     * @hidden @internal
+     * Backward compatibility for usePredefinedRanges
+     */
+    @Input()
+    public set usePredefinedRanges(value: boolean) {
+        this._usePredefinedRanges = value;
+    }
+
+    public get usePredefinedRanges(): boolean {
+        return this._usePredefinedRanges;
+    }
+
+    /**
+     * @hidden @internal
+     * Backward compatibility for customRanges
+     */
+    @Input()
+    public set customRanges(value: CustomDateRange[]) {
+        this._customRanges = value;
+    }
+
+    public get customRanges(): CustomDateRange[] {
+        return this._customRanges;
+    }
 
     @Output()
     public valueChange = new EventEmitter<DateRange>();
@@ -465,9 +609,9 @@ export class IgxDateRangePickerComponent extends PickerBaseDirective
     }
 
     /**
-     * Gets/Sets the date which is shown in the calendar picker and is highlighted.
-     * By default it is the current date, or the value of the picker, if set.
-    */
+     * @hidden @internal
+     * Backward compatibility getter for activeDate
+     */
     @Input()
     public get activeDate(): Date {
         const today = new Date(new Date().setHours(0, 0, 0, 0));
@@ -475,6 +619,10 @@ export class IgxDateRangePickerComponent extends PickerBaseDirective
         return this._activeDate ?? dateValue ?? this._calendar?.activeDate ?? today;
     }
 
+    /**
+     * @hidden @internal
+     * Backward compatibility setter for activeDate
+     */
     public set activeDate(value: Date) {
         this._activeDate = value;
     }
@@ -503,7 +651,7 @@ export class IgxDateRangePickerComponent extends PickerBaseDirective
         // if value is invalid, set it back to _localeId
         try {
             getLocaleFirstDayOfWeek(this._locale);
-        } catch (e) {
+        } catch (_e) {
             this._locale = this._localeId;
         }
         if (this.hasProjectedInputs) {
@@ -612,12 +760,18 @@ export class IgxDateRangePickerComponent extends PickerBaseDirective
     private _statusChanges$: Subscription;
     private _calendar: IgxCalendarComponent;
     private _calendarContainer?: HTMLElement;
+    private _calendarContainerComponent?: IgxCalendarContainerComponent;
     private _positionSettings: PositionSettings;
     private _focusedInput: IgxDateRangeInputsBaseComponent;
     private _displayMonthsCount = 2;
+    private _orientation: PickerCalendarOrientation = PickerCalendarOrientation.Horizontal;
+    private _hideOutsideDays: boolean;
+    private _showWeekNumbers = false;
     private _specialDates: DateRangeDescriptor[] = null;
     private _disabledDates: DateRangeDescriptor[] = null;
     private _activeDate: Date | null = null;
+    private _usePredefinedRanges = false;
+    private _customRanges: CustomDateRange[] = [];
     private _overlaySubFilter:
         [MonoTypeOperatorFunction<OverlayEventArgs>, MonoTypeOperatorFunction<OverlayEventArgs | OverlayCancelableEventArgs>] = [
             filter(x => x.id === this._overlayId),
@@ -879,6 +1033,42 @@ export class IgxDateRangePickerComponent extends PickerBaseDirective
         if (changes['disabled']) {
             this.updateDisabledState();
         }
+        if (changes['calendarConfig']) {
+            const config = changes['calendarConfig'].currentValue as IDateRangePickerCalendarConfig;
+            if (config && changes['calendarConfig'].previousValue !== config) {
+                if (config.disabledDates !== undefined) {
+                    this._disabledDates = config.disabledDates;
+                    this.onValidatorChange();
+                }
+                if (config.specialDates !== undefined) {
+                    this._specialDates = config.specialDates;
+                }
+                if (config.hideOutsideDays !== undefined || config.showWeekNumbers !== undefined || 
+                    config.orientation !== undefined || config.displayMonthsCount !== undefined) {
+                    if (this._calendar) {
+                        this.updateCalendar();
+                    }
+                }
+            }
+        }
+        if (changes['validationConfig']) {
+            const config = changes['validationConfig'].currentValue as IDateRangePickerValidationConfig;
+            if (config && changes['validationConfig'].previousValue !== config) {
+                if (config.minValue !== undefined || config.maxValue !== undefined) {
+                    this.onValidatorChange();
+                    if (this._calendar) {
+                        this.updateCalendar();
+                    }
+                }
+            }
+        }
+        if (changes['rangeConfig']) {
+            const config = changes['rangeConfig'].currentValue as IDateRangePickerRangeConfig;
+            if (config && changes['rangeConfig'].previousValue !== config && this._calendarContainerComponent) {
+                this._calendarContainerComponent.usePredefinedRanges = this._usePredefinedRanges;
+                this._calendarContainerComponent.customRanges = this._customRanges;
+            }
+        }
     }
 
     /** @hidden @internal */
@@ -975,7 +1165,8 @@ export class IgxDateRangePickerComponent extends PickerBaseDirective
                 return;
             }
 
-            this._initializeCalendarContainer(e.componentRef.instance);
+            this._calendarContainerComponent = e.componentRef.instance;
+            this._initializeCalendarContainer(this._calendarContainerComponent);
             this._calendarContainer = e.componentRef.location.nativeElement;
             this._collapsed = false;
             this.updateCalendar();
@@ -1000,6 +1191,7 @@ export class IgxDateRangePickerComponent extends PickerBaseDirective
             this._overlayId = null;
             this._calendar = null;
             this._calendarContainer = undefined;
+            this._calendarContainerComponent = undefined;
             this.closed.emit({ owner: this });
         });
     }
@@ -1304,15 +1496,15 @@ export class IgxDateRangePickerComponent extends PickerBaseDirective
         this._calendar.locale = this.locale;
         this._calendar.selection = CalendarSelection.RANGE;
         this._calendar.weekStart = this.weekStart;
-        this._calendar.hideOutsideDays = this.hideOutsideDays;
+        this._calendar.hideOutsideDays = this._hideOutsideDays;
         this._calendar.monthsViewNumber = this._displayMonthsCount;
-        this._calendar.showWeekNumbers = this.showWeekNumbers;
+        this._calendar.showWeekNumbers = this._showWeekNumbers;
         this._calendar.headerTitleTemplate = this.headerTitleTemplate;
         this._calendar.headerTemplate = this.headerTemplate;
         this._calendar.subheaderTemplate = this.subheaderTemplate;
         this._calendar.headerOrientation = this.headerOrientation;
-        this._calendar.orientation = this.orientation;
-        this._calendar.specialDates = this.specialDates;
+        this._calendar.orientation = this._orientation;
+        this._calendar.specialDates = this._specialDates;
         this._calendar.selected.pipe(takeUntil(this._destroy$)).subscribe((ev: Date[]) => this.handleSelection(ev));
 
         this._setDisabledDates();
@@ -1322,8 +1514,8 @@ export class IgxDateRangePickerComponent extends PickerBaseDirective
         componentInstance.closeButtonLabel = !this.isDropdown ? this.doneButtonText : null;
         componentInstance.cancelButtonLabel = !this.isDropdown ? this.cancelButtonText : null;
         componentInstance.pickerActions = this.pickerActions;
-        componentInstance.usePredefinedRanges = this.usePredefinedRanges;
-        componentInstance.customRanges = this.customRanges;
+        componentInstance.usePredefinedRanges = this._usePredefinedRanges;
+        componentInstance.customRanges = this._customRanges;
         componentInstance.resourceStrings = this.resourceStrings;
         componentInstance.calendarClose.pipe(takeUntil(this._destroy$)).subscribe(() => this.close());
         componentInstance.calendarCancel.pipe(takeUntil(this._destroy$)).subscribe(() => {

@@ -70,6 +70,7 @@ import { IgxIconComponent } from 'igniteui-angular/icon';
 import { fadeIn, fadeOut } from 'igniteui-angular/animations';
 import { PickerBaseDirective } from './picker-base.directive';
 import { IgxCalendarContainerComponent } from './calendar-container/calendar-container.component';
+import { IDatePickerConfig } from './date-picker.config';
 
 let NEXT_ID = 0;
 
@@ -112,240 +113,106 @@ export class IgxDatePickerComponent extends PickerBaseDirective implements Contr
     private platform = inject(PlatformUtil);
     private cdr = inject(ChangeDetectorRef);
 
-
-    /**
-     * Gets/Sets whether the inactive dates will be hidden.
-     *
-     * @remarks
-     * Applies to dates that are out of the current month.
-     * Default value is `false`.
-     * @example
-     * ```html
-     * <igx-date-picker [hideOutsideDays]="true"></igx-date-picker>
-     * ```
-     * @example
-     * ```typescript
-     * let hideOutsideDays = this.datePicker.hideOutsideDays;
-     * ```
-     */
-    @Input({ transform: booleanAttribute })
-    public hideOutsideDays: boolean;
-
-    /**
-     * Gets/Sets the number of month views displayed.
-     *
-     * @remarks
-     * Default value is `1`.
-     *
-     * @example
-     * ```html
-     * <igx-date-picker [displayMonthsCount]="2"></igx-date-picker>
-     * ```
-     * @example
-     * ```typescript
-     * let monthViewsDisplayed = this.datePicker.displayMonthsCount;
-     * ```
-     */
     @Input()
-    public displayMonthsCount = 1;
+    public config!: IDatePickerConfig;
 
-    /**
-    * Gets/Sets the orientation of the multiple months displayed in the picker's calendar's days view.
-    *
-    * @example
-    * <igx-date-picker orientation="vertical"></igx-date-picker>
-    */
-    @Input()
-    public orientation: PickerCalendarOrientation = PickerCalendarOrientation.Horizontal;
+    public get hideOutsideDays(): boolean {
+        return this.config?.hideOutsideDays ?? false;
+    }
 
-    /**
-     * Show/hide week numbers
-     *
-     * @example
-     * ```html
-     * <igx-date-picker [showWeekNumbers]="true"></igx-date-picker>
-     * ``
-     */
-    @Input({ transform: booleanAttribute })
-    public showWeekNumbers: boolean;
+    public get displayMonthsCount(): number {
+        return this.config?.displayMonthsCount ?? 1;
+    }
 
+    public get orientation(): PickerCalendarOrientation {
+        return this.config?.orientation ?? PickerCalendarOrientation.Horizontal;
+    }
 
-    /**
-     * Gets/Sets the date which is shown in the calendar picker and is highlighted.
-     * By default it is the current date, or the value of the picker, if set.
-     */
-    @Input()
+    public get showWeekNumbers(): boolean {
+        return this.config?.showWeekNumbers ?? false;
+    }
+
     public get activeDate(): Date {
         const today = new Date(new Date().setHours(0, 0, 0, 0));
         const dateValue = DateTimeUtil.isValidDate(this._dateValue) ? new Date(this._dateValue.setHours(0, 0, 0, 0)) : null;
-        return this._activeDate ?? dateValue ?? this._calendar?.activeDate ?? today;
+        return this.config?.activeDate ?? this._activeDate ?? dateValue ?? this._calendar?.activeDate ?? today;
     }
 
     public set activeDate(value: Date) {
+        if (this.config) {
+            this.config.activeDate = value;
+        }
         this._activeDate = value;
     }
 
-    /**
-     * Gets/Sets a custom formatter function on the selected or passed date.
-     *
-     * @example
-     * ```html
-     * <igx-date-picker [value]="date" [formatter]="formatter"></igx-date-picker>
-     * ```
-     */
-    @Input()
-    public formatter: (val: Date) => string;
-
-    /**
-     * Gets/Sets the today button's label.
-     *
-     *  @example
-     * ```html
-     * <igx-date-picker todayButtonLabel="Today"></igx-date-picker>
-     * ```
-     */
-    @Input()
-    public todayButtonLabel: string;
-
-    /**
-     * Gets/Sets the cancel button's label.
-     *
-     * @example
-     * ```html
-     * <igx-date-picker cancelButtonLabel="Cancel"></igx-date-picker>
-     * ```
-     */
-    @Input()
-    public cancelButtonLabel: string;
-
-    /**
-     * Specify if the currently spun date segment should loop over.
-     *
-     *  @example
-     * ```html
-     * <igx-date-picker [spinLoop]="false"></igx-date-picker>
-     * ```
-     */
-    @Input({ transform: booleanAttribute })
-    public spinLoop = true;
-
-    /**
-     * Delta values used to increment or decrement each editor date part on spin actions.
-     * All values default to `1`.
-     *
-     * @example
-     * ```html
-     * <igx-date-picker [spinDelta]="{ date: 5, month: 2 }"></igx-date-picker>
-     * ```
-     */
-    @Input()
-    public spinDelta: Pick<DatePartDeltas, 'date' | 'month' | 'year'>;
-
-    /**
-     * Gets/Sets the container used for the popup element.
-     *
-     * @remarks
-     *  `outlet` is an instance of `IgxOverlayOutletDirective` or an `ElementRef`.
-     * @example
-     * ```html
-     * <div igxOverlayOutlet #outlet="overlay-outlet"></div>
-     * //..
-     * <igx-date-picker [outlet]="outlet"></igx-date-picker>
-     * //..
-     * ```
-     */
-    @Input()
-    public override outlet: IgxOverlayOutletDirective | ElementRef;
-
-    /**
-     * Gets/Sets the value of `id` attribute.
-     *
-     * @remarks If not provided it will be automatically generated.
-     * @example
-     * ```html
-     * <igx-date-picker [id]="'igx-date-picker-3'" cancelButtonLabel="cancel" todayButtonLabel="today"></igx-date-picker>
-     * ```
-     */
-    @Input()
-    @HostBinding('attr.id')
-    public id = `igx-date-picker-${NEXT_ID++}`;
-
-    //#region calendar members
-
-    /**
-     * Gets/Sets the format views of the `IgxDatePickerComponent`.
-     *
-     * @example
-     * ```typescript
-     * let formatViews = this.datePicker.formatViews;
-     *  this.datePicker.formatViews = {day:false, month: false, year:false};
-     * ```
-     */
-    @Input()
-    public formatViews: IFormattingViews;
-
-    /**
-     * Gets/Sets the disabled dates descriptors.
-     *
-     * @example
-     * ```typescript
-     * let disabledDates = this.datepicker.disabledDates;
-     * this.datePicker.disabledDates = [ {type: DateRangeType.Weekends}, ...];
-     * ```
-     */
-    @Input()
-    public get disabledDates(): DateRangeDescriptor[] {
-        return this._disabledDates;
+    public get formatter(): (val: Date) => string {
+        return this.config?.formatter;
     }
+
+    public get todayButtonLabel(): string {
+        return this.config?.todayButtonLabel;
+    }
+
+    public get cancelButtonLabel(): string {
+        return this.config?.cancelButtonLabel;
+    }
+
+    public get spinLoop(): boolean {
+        return this.config?.spinLoop ?? true;
+    }
+
+    public get spinDelta(): Pick<DatePartDeltas, 'date' | 'month' | 'year'> {
+        return this.config?.spinDelta;
+    }
+
+
+    @HostBinding('attr.id')
+    public get id(): string {
+        if (this.config?.id) {
+            this._id = this.config.id;
+        }
+        return this._id;
+    }
+
+    public get formatViews(): IFormattingViews {
+        return this.config?.formatViews;
+    }
+
+    public get disabledDates(): DateRangeDescriptor[] {
+        return this.config?.disabledDates ?? this._disabledDates;
+    }
+
     public set disabledDates(value: DateRangeDescriptor[]) {
+        if (this.config) {
+            this.config.disabledDates = value;
+        }
         this._disabledDates = value;
         this._onValidatorChange();
     }
 
-    /**
-     * Gets/Sets the special dates descriptors.
-     *
-     * @example
-     * ```typescript
-     * let specialDates = this.datepicker.specialDates;
-     * this.datePicker.specialDates = [ {type: DateRangeType.Weekends}, ... ];
-     * ```
-     */
-    @Input()
     public get specialDates(): DateRangeDescriptor[] {
-        return this._specialDates;
+        return this.config?.specialDates ?? this._specialDates;
     }
+
     public set specialDates(value: DateRangeDescriptor[]) {
+        if (this.config) {
+            this.config.specialDates = value;
+        }
         this._specialDates = value;
     }
 
-
-    /**
-     * Gets/Sets the format options of the `IgxDatePickerComponent`.
-     *
-     * @example
-     * ```typescript
-     * this.datePicker.calendarFormat = {day: "numeric",  month: "long", weekday: "long", year: "numeric"};
-     * ```
-     */
-    @Input()
-    public calendarFormat: IFormattingOptions;
-
-    //#endregion
-
-    /**
-     * Gets/Sets the selected date.
-     *
-     *  @example
-     * ```html
-     * <igx-date-picker [value]="date"></igx-date-picker>
-     * ```
-     */
-    @Input()
-    public get value(): Date | string {
-        return this._value;
+    public get calendarFormat(): IFormattingOptions {
+        return this.config?.calendarFormat;
     }
+
+    public get value(): Date | string {
+        return this.config?.value ?? this._value;
+    }
+
     public set value(date: Date | string) {
+        if (this.config) {
+            this.config.value = date;
+        }
         this._value = date;
         this.setDateValue(date);
         if (this.dateTimeEditor.value !== date) {
@@ -355,48 +222,37 @@ export class IgxDatePickerComponent extends PickerBaseDirective implements Contr
         this._onChangeCallback(this.dateValue);
     }
 
-    /**
-     * The minimum value the picker will accept.
-     *
-     * @example
-     * <igx-date-picker [minValue]="minDate"></igx-date-picker>
-     */
-    @Input()
+    public get minValue(): Date | string {
+        return this.config?.minValue ?? this._minValue;
+    }
+
     public set minValue(value: Date | string) {
+        if (this.config) {
+            this.config.minValue = value;
+        }
         this._minValue = value;
         this._onValidatorChange();
     }
 
-    public get minValue(): Date | string {
-        return this._minValue;
+    public get maxValue(): Date | string {
+        return this.config?.maxValue ?? this._maxValue;
     }
 
-    /**
-     * The maximum value the picker will accept.
-     *
-     * @example
-     * <igx-date-picker [maxValue]="maxDate"></igx-date-picker>
-     */
-    @Input()
     public set maxValue(value: Date | string) {
+        if (this.config) {
+            this.config.maxValue = value;
+        }
         this._maxValue = value;
         this._onValidatorChange();
     }
 
-    public get maxValue(): Date | string {
-        return this._maxValue;
+    public get resourceStrings(): IDatePickerResourceStrings {
+        return this.config?.resourceStrings;
     }
 
-    /**
-     * Gets/Sets the resource strings for the picker's default toggle icon.
-     * By default it uses EN resources.
-     */
-    @Input()
-    public resourceStrings: IDatePickerResourceStrings;
-
-    /** @hidden @internal */
-    @Input({ transform: booleanAttribute })
-    public readOnly = false;
+    public get readOnly(): boolean {
+        return this.config?.readOnly ?? false;
+    }
 
     /**
      * Emitted when the picker's value changes.
@@ -468,15 +324,15 @@ export class IgxDatePickerComponent extends PickerBaseDirective implements Contr
     }
 
     private get pickerFormatViews(): IFormattingViews {
-        return Object.assign({}, this._defFormatViews, this.formatViews);
+        return Object.assign({}, this._defFormatViews, this.formatViews || {});
     }
 
     private get pickerCalendarFormat(): IFormattingOptions {
-        return Object.assign({}, this._calendarFormat, this.calendarFormat);
+        return Object.assign({}, this._calendarFormat, this.calendarFormat || {});
     }
 
     /** @hidden @internal */
-    public displayValue: PipeTransform = { transform: (date: Date) => this.formatter(date) };
+    public displayValue: PipeTransform = { transform: (date: Date) => this.formatter ? this.formatter(date) : date.toString() };
 
     private _resourceStrings = getCurrentResourceStrings(DatePickerResourceStringsEN);
     private _dateValue: Date;
@@ -489,6 +345,7 @@ export class IgxDatePickerComponent extends PickerBaseDirective implements Contr
     private _specialDates: DateRangeDescriptor[] = null;
     private _disabledDates: DateRangeDescriptor[] = null;
     private _activeDate: Date = null;
+    private _id: string = `igx-date-picker-${NEXT_ID++}`;
     private _overlaySubFilter:
         [MonoTypeOperatorFunction<OverlayEventArgs>,
             MonoTypeOperatorFunction<OverlayEventArgs | OverlayCancelableEventArgs>] = [
@@ -544,7 +401,7 @@ export class IgxDatePickerComponent extends PickerBaseDirective implements Contr
 
     /** @hidden @internal */
     public get pickerResourceStrings(): IDatePickerResourceStrings {
-        return Object.assign({}, this._resourceStrings, this.resourceStrings);
+        return Object.assign({}, this._resourceStrings, this.resourceStrings || {});
     }
 
     protected override get toggleContainer(): HTMLElement | undefined {
