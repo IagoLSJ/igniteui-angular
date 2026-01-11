@@ -156,6 +156,9 @@ export class ChipsSampleComponent implements OnInit {
     public customIcons = false;
 
     public removeChip(chip: IgxChipComponent) {
-        chip.nativeElement.remove();
+        chip.remove.emit({
+            originalEvent: new MouseEvent('click'),
+            owner: chip
+        });
     }
 }
