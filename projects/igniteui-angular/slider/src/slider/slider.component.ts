@@ -9,8 +9,10 @@ import {
     IgxThumbToTemplateDirective, IgxTickLabelTemplateDirective, IRangeSliderValue, ISliderValueChangeEventArgs, SliderHandle, TickLabelsOrientation, TicksOrientation
 } from './slider.common';
 import { IgxSliderThumbComponent } from './thumb/thumb-slider.component';
+import { IThumbSliderConfig } from './thumb/thumb-slider.config';
 import { IgxTickLabelsPipe } from './ticks/tick.pipe';
 import { IgxTicksComponent } from './ticks/ticks.component';
+import { ITicksConfig } from './ticks/ticks.config';
 
 let NEXT_ID = 0;
 
@@ -33,7 +35,7 @@ let NEXT_ID = 0;
     providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: IgxSliderComponent, multi: true }],
     selector: 'igx-slider',
     templateUrl: 'slider.component.html',
-    imports: [IgxTicksComponent, IgxThumbLabelComponent, IgxSliderThumbComponent, IgxTickLabelsPipe]
+    imports: [IgxTicksComponent, IgxThumbLabelComponent, IgxSliderThumbComponent]
 })
 export class IgxSliderComponent implements
     ControlValueAccessor,
@@ -909,6 +911,69 @@ export class IgxSliderComponent implements
     public get showBottomTicks() {
         return this.ticksOrientation === TicksOrientation.Bottom ||
             this.ticksOrientation === TicksOrientation.Mirror;
+    }
+
+    /**
+     * @hidden
+     */
+    public getTicksConfig(orientation: 'top' | 'bottom'): ITicksConfig {
+        return {
+            primaryTicks: this.primaryTicks,
+            secondaryTicks: this.secondaryTicks,
+            primaryTickLabels: this.primaryTickLabels,
+            secondaryTickLabels: this.secondaryTickLabels,
+            ticksOrientation: orientation === 'top' ? TicksOrientation.Top : TicksOrientation.Bottom,
+            tickLabelsOrientation: this.tickLabelsOrientation,
+            maxValue: this.maxValue,
+            minValue: this.minValue,
+            labelsViewEnabled: this.labelsViewEnabled,
+            labels: this.labels,
+            tickLabelTemplateRef: this.tickLabelTemplateRef
+        };
+    }
+
+    /**
+     * @hidden
+     */
+    public getThumbFromConfig(): IThumbSliderConfig {
+        return {
+            value: this.lowerLabel,
+            min: this.minValue,
+            max: this.maxValue,
+            disabled: this.disabled,
+            continuous: this.continuous,
+            onPan: this.onPan,
+            stepDistance: this.stepDistance,
+            step: this.step,
+            templateRef: this.thumbFromTemplateRef,
+            context: this.context,
+            type: SliderHandle.FROM,
+            labels: this.labels,
+            deactiveState: this.deactivateThumbLabel,
+            thumbLabelVisibilityDuration: this.thumbLabelVisibilityDuration
+        };
+    }
+
+    /**
+     * @hidden
+     */
+    public getThumbToConfig(): IThumbSliderConfig {
+        return {
+            value: this.upperLabel,
+            min: this.minValue,
+            max: this.maxValue,
+            disabled: this.disabled,
+            continuous: this.continuous,
+            onPan: this.onPan,
+            stepDistance: this.stepDistance,
+            step: this.step,
+            templateRef: this.thumbToTemplateRef,
+            context: this.context,
+            type: SliderHandle.TO,
+            labels: this.labels,
+            deactiveState: this.deactivateThumbLabel,
+            thumbLabelVisibilityDuration: this.thumbLabelVisibilityDuration
+        };
     }
 
     /**

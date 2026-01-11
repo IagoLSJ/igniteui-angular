@@ -1,9 +1,10 @@
-import { Component, Input, HostListener, ElementRef, HostBinding, Output, EventEmitter, OnInit, OnDestroy, TemplateRef, booleanAttribute, inject } from '@angular/core';
+import { Component, Input, HostListener, ElementRef, HostBinding, Output, EventEmitter, OnInit, OnDestroy, TemplateRef, inject } from '@angular/core';
 import { takeUntil } from 'rxjs/operators';
 import { SliderHandle } from '../slider.common';
 import { Subject } from 'rxjs';
 import { NgClass } from '@angular/common';
 import { ɵIgxDirectionality } from 'igniteui-angular/core';
+import { IThumbSliderConfig } from './thumb-slider.config';
 
 /**
  * @hidden
@@ -18,46 +19,129 @@ export class IgxSliderThumbComponent implements OnInit, OnDestroy {
     private _dir = inject(ɵIgxDirectionality);
 
     @Input()
-    public value: any;
+    public set config(value: IThumbSliderConfig) {
+        if (value) {
+            this._config = { ...value };
+            if (value.value !== undefined) {
+                this._value = value.value;
+            }
+            if (value.continuous !== undefined) {
+                this._continuous = value.continuous;
+            }
+            if (value.thumbLabelVisibilityDuration !== undefined) {
+                this._thumbLabelVisibilityDuration = value.thumbLabelVisibilityDuration;
+            }
+            if (value.disabled !== undefined) {
+                this._disabled = value.disabled;
+            }
+            if (value.onPan !== undefined) {
+                this._onPan = value.onPan;
+            }
+            if (value.stepDistance !== undefined) {
+                this._stepDistance = value.stepDistance;
+            }
+            if (value.step !== undefined) {
+                this._step = value.step;
+            }
+            if (value.templateRef !== undefined) {
+                this._templateRef = value.templateRef;
+            }
+            if (value.context !== undefined) {
+                this._context = value.context;
+            }
+            if (value.type !== undefined) {
+                this._type = value.type;
+            }
+            if (value.deactiveState !== undefined) {
+                this._deactiveState = value.deactiveState;
+            }
+            if (value.min !== undefined) {
+                this._min = value.min;
+            }
+            if (value.max !== undefined) {
+                this._max = value.max;
+            }
+            if (value.labels !== undefined) {
+                this._labels = value.labels;
+            }
+        }
+    }
 
-    @Input({ transform: booleanAttribute })
-    public continuous: boolean;
+    public get config(): Readonly<IThumbSliderConfig> {
+        return this._config;
+    }
 
-    @Input()
-    public thumbLabelVisibilityDuration: number;
+    public get value(): any {
+        return this._value ?? this._config?.value;
+    }
 
-    @Input({ transform: booleanAttribute })
-    public disabled: boolean;
+    public get continuous(): boolean {
+        return this._continuous ?? this._config?.continuous ?? false;
+    }
 
-    @Input()
-    public onPan: Subject<number>;
+    public get thumbLabelVisibilityDuration(): number {
+        return this._thumbLabelVisibilityDuration ?? this._config?.thumbLabelVisibilityDuration;
+    }
 
-    @Input()
-    public stepDistance: number;
+    public get disabled(): boolean {
+        return this._disabled ?? this._config?.disabled ?? false;
+    }
 
-    @Input()
-    public step: number;
+    public get onPan(): Subject<number> {
+        return this._onPan ?? this._config?.onPan;
+    }
 
-    @Input()
-    public templateRef: TemplateRef<any>;
+    public get stepDistance(): number {
+        return this._stepDistance ?? this._config?.stepDistance;
+    }
 
-    @Input()
-    public context: any;
+    public get step(): number {
+        return this._step ?? this._config?.step;
+    }
 
-    @Input()
-    public type: SliderHandle;
+    public get templateRef(): TemplateRef<any> {
+        return this._templateRef ?? this._config?.templateRef;
+    }
 
-    @Input({ transform: booleanAttribute })
-    public deactiveState: boolean;
+    public get context(): any {
+        return this._context ?? this._config?.context;
+    }
 
-    @Input()
-    public min: number;
+    public get type(): SliderHandle {
+        return this._type ?? this._config?.type;
+    }
 
-    @Input()
-    public max: number;
+    public get deactiveState(): boolean {
+        return this._deactiveState ?? this._config?.deactiveState ?? false;
+    }
 
-    @Input()
-    public labels: any[];
+    public get min(): number {
+        return this._min ?? this._config?.min;
+    }
+
+    public get max(): number {
+        return this._max ?? this._config?.max;
+    }
+
+    public get labels(): any[] {
+        return this._labels ?? this._config?.labels;
+    }
+
+    private _config: IThumbSliderConfig = {};
+    private _value: any;
+    private _continuous: boolean;
+    private _thumbLabelVisibilityDuration: number;
+    private _disabled: boolean;
+    private _onPan: Subject<number>;
+    private _stepDistance: number;
+    private _step: number;
+    private _templateRef: TemplateRef<any>;
+    private _context: any;
+    private _type: SliderHandle;
+    private _deactiveState: boolean;
+    private _min: number;
+    private _max: number;
+    private _labels: any[];
 
     @Output()
     public thumbValueChange = new EventEmitter<number>();

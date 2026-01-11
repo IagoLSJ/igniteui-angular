@@ -1,16 +1,6 @@
 @if (showTicks && showTopTicks) {
     <igx-ticks
-        ticksOrientation="top"
-        [primaryTicks]="primaryTicks"
-        [secondaryTicks]="secondaryTicks"
-        [primaryTickLabels]="primaryTickLabels"
-        [secondaryTickLabels]="secondaryTickLabels"
-        [tickLabelsOrientation]="tickLabelsOrientation"
-        [labelsViewEnabled]="labelsViewEnabled"
-        [labels]="labels | spreadTickLabels:secondaryTicks"
-        [tickLabelTemplateRef]="tickLabelTemplateRef"
-        [minValue]="minValue"
-        [maxValue]="maxValue">
+        [config]="getTicksConfig('top')">
     </igx-ticks>
 }
 <div class="igx-slider__track">
@@ -37,22 +27,9 @@
     @if (isRange) {
         <igx-thumb
             #thumbFrom
-            type="from"
-            [value]="lowerLabel"
-            [min]="minValue"
-            [max]="maxValue"
-            [disabled]="disabled"
-            [continuous]="continuous"
-            [onPan]="onPan"
-            [stepDistance]="stepDistance"
-            [step]="step"
-            [templateRef]="thumbFromTemplateRef"
-            [context]="context"
-            [labels]="labels"
+            [config]="getThumbFromConfig()"
             (thumbChange)="onThumbChange()"
-            (hoverChange)="onHoverChange($event)"
-            [deactiveState]="deactivateThumbLabel"
-            [thumbLabelVisibilityDuration]="thumbLabelVisibilityDuration"></igx-thumb>
+            (hoverChange)="onHoverChange($event)"></igx-thumb>
     }
 
     <igx-thumb-label
@@ -66,35 +43,12 @@
 
     <igx-thumb
         #thumbTo
-        type="to"
-        [value]="upperLabel"
-        [min]="minValue"
-        [max]="maxValue"
-        [disabled]="disabled"
-        [continuous]="continuous"
-        [onPan]="onPan"
-        [stepDistance]="stepDistance"
-        [step]="step"
-        [templateRef]="thumbToTemplateRef"
-        [context]="context"
-        [labels]="labels"
+        [config]="getThumbToConfig()"
         (thumbChange)="onThumbChange()"
-        (hoverChange)="onHoverChange($event)"
-        [deactiveState]="deactivateThumbLabel"
-        [thumbLabelVisibilityDuration]="thumbLabelVisibilityDuration"></igx-thumb>
+        (hoverChange)="onHoverChange($event)"></igx-thumb>
 </div>
 @if (showTicks && showBottomTicks) {
     <igx-ticks
-        ticksOrientation="bottom"
-        [primaryTicks]="primaryTicks"
-        [secondaryTicks]="secondaryTicks"
-        [primaryTickLabels]="primaryTickLabels"
-        [secondaryTickLabels]="secondaryTickLabels"
-        [tickLabelsOrientation]="tickLabelsOrientation"
-        [labelsViewEnabled]="labelsViewEnabled"
-        [labels]="labels | spreadTickLabels:secondaryTicks"
-        [tickLabelTemplateRef]="tickLabelTemplateRef"
-        [minValue]="minValue"
-        [maxValue]="maxValue">
+        [config]="getTicksConfig('bottom')">
     </igx-ticks>
 }

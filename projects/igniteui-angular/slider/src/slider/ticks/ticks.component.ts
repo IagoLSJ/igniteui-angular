@@ -1,6 +1,7 @@
-import { Component, Input, TemplateRef, HostBinding, booleanAttribute } from '@angular/core';
+import { Component, Input, TemplateRef, HostBinding } from '@angular/core';
 import { TicksOrientation, TickLabelsOrientation } from '../slider.common';
 import { NgClass, NgTemplateOutlet } from '@angular/common';
+import { ITicksConfig, ITickLabelContext } from './ticks.config';
 
 /**
  * @hidden
@@ -11,38 +12,109 @@ import { NgClass, NgTemplateOutlet } from '@angular/common';
     imports: [NgClass, NgTemplateOutlet]
 })
 export class IgxTicksComponent {
+    /**
+     * Configuration object for ticks component
+     */
     @Input()
-    public primaryTicks: number;
+    public set config(value: ITicksConfig) {
+        if (value) {
+            this._config = { ...value };
+            if (value.primaryTicks !== undefined) {
+                this._primaryTicks = value.primaryTicks;
+            }
+            if (value.secondaryTicks !== undefined) {
+                this._secondaryTicks = value.secondaryTicks;
+            }
+            if (value.primaryTickLabels !== undefined) {
+                this._primaryTickLabels = value.primaryTickLabels;
+            }
+            if (value.secondaryTickLabels !== undefined) {
+                this._secondaryTickLabels = value.secondaryTickLabels;
+            }
+            if (value.ticksOrientation !== undefined) {
+                this._ticksOrientation = value.ticksOrientation as TicksOrientation;
+            }
+            if (value.tickLabelsOrientation !== undefined) {
+                this._tickLabelsOrientation = value.tickLabelsOrientation;
+            }
+            if (value.maxValue !== undefined) {
+                this._maxValue = value.maxValue;
+            }
+            if (value.minValue !== undefined) {
+                this._minValue = value.minValue;
+            }
+            if (value.labelsViewEnabled !== undefined) {
+                this._labelsViewEnabled = value.labelsViewEnabled;
+            }
+            if (value.labels !== undefined) {
+                this._labels = value.labels;
+            }
+            if (value.tickLabelTemplateRef !== undefined) {
+                this._tickLabelTemplateRef = value.tickLabelTemplateRef;
+            }
+        }
+    }
 
-    @Input()
-    public secondaryTicks: number;
+    public get config(): Readonly<ITicksConfig> {
+        return this._config;
+    }
 
-    @Input({ transform: booleanAttribute })
-    public primaryTickLabels: boolean;
+    public get primaryTicks(): number {
+        return this._primaryTicks ?? this._config?.primaryTicks;
+    }
 
-    @Input({ transform: booleanAttribute })
-    public secondaryTickLabels: boolean;
+    public get secondaryTicks(): number {
+        return this._secondaryTicks ?? this._config?.secondaryTicks;
+    }
 
-    @Input()
-    public ticksOrientation: TicksOrientation;
+    public get primaryTickLabels(): boolean {
+        return this._primaryTickLabels ?? this._config?.primaryTickLabels ?? false;
+    }
 
-    @Input()
-    public tickLabelsOrientation: TickLabelsOrientation;
+    public get secondaryTickLabels(): boolean {
+        return this._secondaryTickLabels ?? this._config?.secondaryTickLabels ?? false;
+    }
 
-    @Input()
-    public maxValue: number;
+    public get ticksOrientation(): TicksOrientation {
+        return this._ticksOrientation ?? (this._config?.ticksOrientation as TicksOrientation);
+    }
 
-    @Input()
-    public minValue: number;
+    public get tickLabelsOrientation(): TickLabelsOrientation {
+        return this._tickLabelsOrientation ?? this._config?.tickLabelsOrientation;
+    }
 
-    @Input({ transform: booleanAttribute })
-    public labelsViewEnabled: boolean;
+    public get maxValue(): number {
+        return this._maxValue ?? this._config?.maxValue;
+    }
 
-    @Input()
-    public labels: Array<number | string | boolean | null | undefined>;
+    public get minValue(): number {
+        return this._minValue ?? this._config?.minValue;
+    }
 
-    @Input()
-    public tickLabelTemplateRef: TemplateRef<any>;
+    public get labelsViewEnabled(): boolean {
+        return this._labelsViewEnabled ?? this._config?.labelsViewEnabled ?? false;
+    }
+
+    public get labels(): Array<number | string | boolean | null | undefined> {
+        return this._labels ?? this._config?.labels;
+    }
+
+    public get tickLabelTemplateRef(): TemplateRef<ITickLabelContext> {
+        return this._tickLabelTemplateRef ?? this._config?.tickLabelTemplateRef;
+    }
+
+    private _config: ITicksConfig = {};
+    private _primaryTicks: number;
+    private _secondaryTicks: number;
+    private _primaryTickLabels: boolean;
+    private _secondaryTickLabels: boolean;
+    private _ticksOrientation: TicksOrientation;
+    private _tickLabelsOrientation: TickLabelsOrientation;
+    private _maxValue: number;
+    private _minValue: number;
+    private _labelsViewEnabled: boolean;
+    private _labels: Array<number | string | boolean | null | undefined>;
+    private _tickLabelTemplateRef: TemplateRef<ITickLabelContext>;
 
     /**
      * @hidden
@@ -97,7 +169,7 @@ export class IgxTicksComponent {
      *
      * @param idx the index per each tick label.
      */
-    public context(idx: number): any {
+    public context(idx: number): ITickLabelContext {
         return {
             $implicit: this.tickLabel(idx),
             isPrimary: this.isPrimary(idx),
